@@ -9,7 +9,7 @@ from procgen import generate_dungeon
 
 def main() -> None:
     screen_width = 80 
-    screen_height = 50
+    screen_height = 80
 
     map_width = 80
     map_height = 80

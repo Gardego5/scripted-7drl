@@ -1,10 +1,10 @@
-from typing import Tuple, Callable
+from typing import Tuple, Callable, Iterator
 
 import numpy as np
 import random
 import queue
 
-from tcod import heightmap_add
+import tcod
 
 from game_map import GameMap
 import tile_types
@@ -54,6 +54,28 @@ class Room:
               
               (-2,  2),                               ( 2,  2),],
     }
+
+    @staticmethod
+    def tunnel_between(
+        start: Tuple[int, int], end: Tuple[int, int],
+    ) -> Iterator[Tuple[int, int]]:
+        # Returns an L shaped tunnel between 2 points.
+        x1, y1 = start
+        x2, y2 = end
+
+        if random.random() < 0.5: 
+            # Move horizontally, then vertically
+            corner = end[0], start[1]
+        else:
+            # Move vertically, then horizontally
+            corner = start[0], end[1]
+        
+        # Generate the coordinates for this tunnel.
+        for x, y in tcod.los.bresenham(start, corner).tolist():
+            yield x, y
+        for x, y in tcod.los.bresenham(corner, end).tolist():
+            yield x, y
+
     def __init__(
         self,
         x: int, y: int,
@@ -65,7 +87,7 @@ class Room:
         self.width, self.height = width, height
         self.palette = palette
         self.clear()
-    
+
     @property
     def center(self) -> Tuple[int, int]:
         return int((self.x1 + self.x2) / 2), int((self.y1 + self.y2) / 2)
@@ -157,6 +179,7 @@ class MarchingRoom (Room):
                 if dir > 3: dir = 0
                 if dir < 0: dir = 3
 
+# There's an issue here, smooth_raw has an index error.
 class CellularRoom (Room):
     def __init__(
         self, 
@@ -187,6 +210,8 @@ class CellularRoom (Room):
                     except IndexError:
                         pass
             
+                # Whenever width != height, IndexError: index is out of bounds for axis with size 30. 
+                # Seems to flatten the array?
                 new_tiles_raw[x, y] = total / considered
         
         self.tiles_raw = new_tiles_raw 
@@ -255,22 +280,23 @@ class FloodedCellsRoom (CellularRoom):
         
         self.from_raw(lambda x: self.palette[1] if x == 2 else self.palette[0])
 
+# Implements binary space partitioning
 class Tower (Room):
     def __init__(
         self,
         x: int, y: int,
         width: int, height: int, 
         palette = (tile_types.wall, tile_types.floor),
-        req_size: int = 7,
+        req_size: int = 7, split_chance: float = 1.0, split_chance_reduction: float = 0.2
     ) -> None:
         super().__init__(x, y, width, height, palette)
-        self.req_size = req_size
+        self.req_size, self.split_chance, self.split_chance_reduction = req_size, split_chance, split_chance_reduction
         self.features = []
         self.generate()
         self.flatten()
 
     # Returns a tiles array if features is empty, otherwise, returns the layout of it's rooms as a tiles array.
-    def flatten(self, parent: Room = None) -> Room:
+    def flatten(self, parent: Room = None):
         print(f"flattening {self} at {self.bounds}:")
         if len(self.features):
             for feature in self.features:
@@ -278,26 +304,66 @@ class Tower (Room):
                 self.tiles[feature.local_bounds(self.x1, self.y1)] = feature.flatten(self)
             return self.tiles
         else:
-            if random.random() > 1:
-                RectangularRoom.generate(self)
-            else:
-                MarchingRoom.generate(self, 20)
+            roomType = random.choice([RectangularRoom, MarchingRoom])
+            self.tiles = roomType(self.x1, self.x2, self.width, self.height, self.palette).tiles
             return self.tiles
 
     def generate(self) -> None:
+        if random.random() > self.split_chance: print("Quit"); return # Stop splitting if luck wills it.
+
         if self.width > self.req_size and self.height > self.req_size:
-            r = random.random()
-            print(r)
-            if r > .5:  # Horizontal Division
+            if random.random() < .5:  # Horizontal Division
                 w = random.randint(int(self.width*0.25), int(self.width*0.75))
-                left = Tower(self.x1, self.y1, w, self.height)
-                right = Tower(self.x1 + w + 1, self.y1, self.width - w - 1, self.height)
+                left = Tower(
+                    self.x1, self.y1, w, self.height, 
+                    split_chance=self.split_chance - self.split_chance_reduction, 
+                    split_chance_reduction=self.split_chance_reduction
+                )
+                right = Tower(
+                    self.x1 + w + 1, self.y1, self.width - w - 1, self.height, 
+                    split_chance=self.split_chance - self.split_chance_reduction, 
+                    split_chance_reduction=self.split_chance_reduction
+                )
                 self.features = [left, right]
             else:  # Vertical Division
                 h = random.randint(int(self.height*0.25), int(self.height*0.75))
-                top = Tower(self.x1, self.y1, self.width, h)
-                bottom = Tower(self.x1, self.y1 + h + 1, self.width, self.height - h - 1)
+                top = Tower(
+                    self.x1, self.y1, self.width, h, 
+                    split_chance=self.split_chance - self.split_chance_reduction, 
+                    split_chance_reduction=self.split_chance_reduction
+                )
+                bottom = Tower(
+                    self.x1, self.y1 + h + 1, self.width, self.height - h - 1, 
+                    split_chance=self.split_chance - self.split_chance_reduction, 
+                    split_chance_reduction=self.split_chance_reduction
+                )
                 self.features = [top, bottom]
+        elif self.width > self.req_size:
+            w = random.randint(int(self.width*0.25), int(self.width*0.75))
+            left = Tower(
+                self.x1, self.y1, w, self.height, 
+                split_chance=self.split_chance - self.split_chance_reduction, 
+                split_chance_reduction=self.split_chance_reduction
+            )
+            right = Tower(
+                self.x1 + w + 1, self.y1, self.width - w - 1, self.height, 
+                split_chance=self.split_chance - self.split_chance_reduction, 
+                split_chance_reduction=self.split_chance_reduction
+            )
+            self.features = [left, right]
+        elif self.height > self.req_size:
+            h = random.randint(int(self.height*0.25), int(self.height*0.75))
+            top = Tower(
+                self.x1, self.y1, self.width, h, 
+                split_chance=self.split_chance - self.split_chance_reduction, 
+                split_chance_reduction=self.split_chance_reduction
+            )
+            bottom = Tower(
+                self.x1, self.y1 + h + 1, self.width, self.height - h - 1, 
+                split_chance=self.split_chance - self.split_chance_reduction, 
+                split_chance_reduction=self.split_chance_reduction
+            )
+            self.features = [top, bottom]
 
 
 def generate_dungeon(
@@ -308,7 +374,7 @@ def generate_dungeon(
     features = []
 
     # Choose a slice of the map to be the main area
-    features.append(Tower(10, 10, 30, 30))
+    features.append(Tower(10, 10, 50, 50, split_chance_reduction=0.1))
 
     for feature in features:
         dungeon.tiles[feature.bounds] = feature.tiles
