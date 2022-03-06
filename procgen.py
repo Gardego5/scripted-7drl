@@ -11,6 +11,49 @@ import tile_types
 
 
 class Room:
+    _cardinals = [
+        (0, -1),
+        (1, 0),
+        (0, 1),
+        (-1, 0)
+    ]
+    
+    _smoothing_areas = {
+        "r": [(-1, -1), ( 0, -1), ( 1, -1),
+              (-1,  0),           ( 1,  0),
+              (-1,  1), ( 0,  1), ( 1,  1)],
+        "t": [          ( 0, -1),
+              (-1,  0),           ( 1,  0),
+                        ( 0,  1),         ],
+        "x": [(-1, -1),           ( 1, -1),
+                                 
+              (-1,  1),           ( 1,  1)],
+        "R": [(-2, -2), (-1, -2), ( 0, -2), ( 1, -2), ( 2, -2),
+              (-2, -1), (-1, -1), ( 0, -1), ( 1, -1), ( 2, -1),
+              (-2,  0), (-1,  0),           ( 1,  0), ( 2,  0),
+              (-2,  1), (-1,  1), ( 0,  1), ( 1,  1), ( 2,  1),
+              (-2,  2), (-1,  2), ( 0,  2), ( 1,  2), ( 2,  2),],
+        "T": [                    ( 0, -2),                    
+                        (-1, -1), ( 0, -1), ( 1, -1),          
+              (-2,  0), (-1,  0),           ( 1,  0), ( 2,  0),
+                        (-1,  1), ( 0,  1), ( 1,  1),          
+                                  ( 0,  2),                    ],
+        "X": [(-2, -2),                               ( 2, -2),
+                        (-1, -1),           ( 1, -1),          
+                                                                
+                        (-1,  1),           ( 1,  1),          
+              (-2,  2),                               ( 2,  2),],
+        "+": [                    ( 0, -2),                    
+                                  ( 0, -1),
+              (-2,  0), (-1,  0),           ( 1,  0), ( 2,  0),
+                                  ( 0,  1),
+                                  ( 0,  2),                    ],
+        "::": [(-2, -2),                               ( 2, -2),
+
+
+              
+              (-2,  2),                               ( 2,  2),],
+    }
     def __init__(
         self,
         x: int, y: int,
@@ -30,6 +73,17 @@ class Room:
     @property  # Defines the slice where this room should exist on the map.
     def bounds(self) -> Tuple[slice, slice]:
         return slice(self.x1, self.x2), slice(self.y1, self.y2)
+
+    def local_bounds(self, x, y) -> Tuple[slice, slice]:
+        return slice(self.x1 - x, self.x2 - x), slice(self.y1 - y, self.y2 - y)
+
+    def intersects(self, other) -> bool:
+        return (
+            self.x1 <= other.x2
+            and self.x2 >= other.x1
+            and self.y1 <= other.y2
+            and self.y2 >= other.y1
+        )
 
     def clear(self) -> None:
         self.tiles = np.full((self.width, self.height), fill_value=self.palette[0], order="F")
@@ -73,13 +127,6 @@ class CrossRoom (Room):
         self.tiles[:, y_pos:y_pos + y_width] = self.palette[1]
 
 class MarchingRoom (Room):
-    _cardinals = [
-        (0, -1),
-        (1, 0),
-        (0, 1),
-        (-1, 0)
-    ]
-
     def __init__(
         self, 
         x: int, y: int, 
@@ -88,10 +135,11 @@ class MarchingRoom (Room):
         dist: int = None, rotate: float = 0.3, 
     ) -> None:
         super().__init__(x, y, width, height, palette)
-        if dist == None: dist = int(width * height * 0.8)
+        if dist == None: dist = int(self.width * self.height * 0.8)
         self.generate(dist=dist, rotate=rotate)
     
-    def generate(self, dist: int, rotate: float = 0.3) -> None:
+    def generate(self, dist: int = None, rotate: float = 0.3) -> None:
+        if dist == None: dist = int(self.width * self.height * 0.8)
         x_pos, y_pos, dir = int(self.width / 2), int(self.height / 2), random.randint(0, 3)
         i = 0
         while i < dist:
@@ -110,43 +158,6 @@ class MarchingRoom (Room):
                 if dir < 0: dir = 3
 
 class CellularRoom (Room):
-    _smoothing_areas = {
-        "r": [(-1, -1), ( 0, -1), ( 1, -1),
-              (-1,  0),           ( 1,  0),
-              (-1,  1), ( 0,  1), ( 1,  1)],
-        "t": [          ( 0, -1),
-              (-1,  0),           ( 1,  0),
-                        ( 0,  1),         ],
-        "x": [(-1, -1),           ( 1, -1),
-                                 
-              (-1,  1),           ( 1,  1)],
-        "R": [(-2, -2), (-1, -2), ( 0, -2), ( 1, -2), ( 2, -2),
-              (-2, -1), (-1, -1), ( 0, -1), ( 1, -1), ( 2, -1),
-              (-2,  0), (-1,  0),           ( 1,  0), ( 2,  0),
-              (-2,  1), (-1,  1), ( 0,  1), ( 1,  1), ( 2,  1),
-              (-2,  2), (-1,  2), ( 0,  2), ( 1,  2), ( 2,  2),],
-        "T": [                    ( 0, -2),                    
-                        (-1, -1), ( 0, -1), ( 1, -1),          
-              (-2,  0), (-1,  0),           ( 1,  0), ( 2,  0),
-                        (-1,  1), ( 0,  1), ( 1,  1),          
-                                  ( 0,  2),                    ],
-        "X": [(-2, -2),                               ( 2, -2),
-                        (-1, -1),           ( 1, -1),          
-                                                                
-                        (-1,  1),           ( 1,  1),          
-              (-2,  2),                               ( 2,  2),],
-        "+": [                    ( 0, -2),                    
-                                  ( 0, -1),
-              (-2,  0), (-1,  0),           ( 1,  0), ( 2,  0),
-                                  ( 0,  1),
-                                  ( 0,  2),                    ],
-        "::": [(-2, -2),                               ( 2, -2),
-
-
-              
-              (-2,  2),                               ( 2,  2),],
-    }
-
     def __init__(
         self, 
         x: int, y: int, 
@@ -244,21 +255,62 @@ class FloodedCellsRoom (CellularRoom):
         
         self.from_raw(lambda x: self.palette[1] if x == 2 else self.palette[0])
 
+class Tower (Room):
+    def __init__(
+        self,
+        x: int, y: int,
+        width: int, height: int, 
+        palette = (tile_types.wall, tile_types.floor),
+        req_size: int = 7,
+    ) -> None:
+        super().__init__(x, y, width, height, palette)
+        self.req_size = req_size
+        self.features = []
+        self.generate()
+        self.flatten()
 
-def generate_dungeon(map_width, map_height) -> GameMap:
+    # Returns a tiles array if features is empty, otherwise, returns the layout of it's rooms as a tiles array.
+    def flatten(self, parent: Room = None) -> Room:
+        print(f"flattening {self} at {self.bounds}:")
+        if len(self.features):
+            for feature in self.features:
+                print(f"feature.bounds: {feature.bounds}, feature.local_bounds: {feature.local_bounds(self.x1, self.y1)}")
+                self.tiles[feature.local_bounds(self.x1, self.y1)] = feature.flatten(self)
+            return self.tiles
+        else:
+            if random.random() > 1:
+                RectangularRoom.generate(self)
+            else:
+                MarchingRoom.generate(self, 20)
+            return self.tiles
+
+    def generate(self) -> None:
+        if self.width > self.req_size and self.height > self.req_size:
+            r = random.random()
+            print(r)
+            if r > .5:  # Horizontal Division
+                w = random.randint(int(self.width*0.25), int(self.width*0.75))
+                left = Tower(self.x1, self.y1, w, self.height)
+                right = Tower(self.x1 + w + 1, self.y1, self.width - w - 1, self.height)
+                self.features = [left, right]
+            else:  # Vertical Division
+                h = random.randint(int(self.height*0.25), int(self.height*0.75))
+                top = Tower(self.x1, self.y1, self.width, h)
+                bottom = Tower(self.x1, self.y1 + h + 1, self.width, self.height - h - 1)
+                self.features = [top, bottom]
+
+
+def generate_dungeon(
+    map_width: int = 100, map_height: int = 100,
+) -> GameMap:
     dungeon = GameMap(map_width, map_height)
+    
+    features = []
 
-    room_1 = MarchingRoom(0, 0, 20, 20, rotate=1)
-    room_2 = MarchingRoom(25, 0, 20, 20, rotate=1)
-    room_3 = MarchingRoom(50, 0, 20, 20, rotate=1)
-    room_4 = MarchingRoom(0, 25, 20, 20, rotate=1)
-    room_5 = MarchingRoom(25, 25, 20, 20, rotate=1)
-    room_6 = MarchingRoom(50, 25, 20, 20, rotate=1)
+    # Choose a slice of the map to be the main area
+    features.append(Tower(10, 10, 30, 30))
 
-    rooms = [room_1, room_2, room_3, room_4, room_5, room_6]
-
-    for room in rooms:
-        #room.add_margin((1, 1, 1, 1))
-        dungeon.tiles[room.bounds] = room.tiles
+    for feature in features:
+        dungeon.tiles[feature.bounds] = feature.tiles
 
     return dungeon
