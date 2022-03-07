@@ -11,6 +11,7 @@ import tcod
 
 from game_map import GameMap
 import generated_structures
+import entity_factories
 
 
 def place_entities(
@@ -24,14 +25,13 @@ def place_entities(
 
     for i in range(number_of_monsters):
         while i < room.area:  # Choose location for new entity
-            x = random.randint(room.x1, room.x2)
-            y = random.randint(room.y1, room.y2)
+            pos = random.randint(room.x1, room.x2), random.randint(room.y1, room.y2)
             # Increment counter if entity already at chosen site to prevent infinite loop.
-            if any(entity.x == x and entity.y == y for entity in dungeon.entities): i += 1
+            if any(entity.pos == pos for entity in dungeon.entities): i += 1
             # If no entity already at chosen site and site is walkable, break loop and use chosen site
-            elif dungeon.tiles[x, y]["walkable"]: break
+            elif dungeon.tiles[pos]["walkable"]: break
 
-        # TODO place entities at chosen site.
+        random.choices(entity_factories.enemies, entity_factories.enemies_weights)[0].spawn(pos, dungeon)
         
 
 

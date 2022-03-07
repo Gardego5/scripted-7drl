@@ -1,4 +1,12 @@
-from typing import Tuple
+from __future__ import annotations
+
+import copy
+from typing import Tuple, TypeVar, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from game_map import GameMap
+
+T = TypeVar("T", bound="Entity")
 
 from numpy import char
 
@@ -6,7 +14,13 @@ class Entity:
     """
     A generic object to represent players, enemies, items, etc.
     """
-    def __init__(self, pos: Tuple[int, int], char: str, color: Tuple[int, int, int]) -> None:
+    def __init__(
+        self, 
+        pos: Tuple[int, int] = (None, None), 
+        char: str = "?", color: Tuple[int, int, int] = (None, None, None),
+        name: str = "<Unnamed>",
+        blocks_movement: bool = False,
+    ) -> None:
         self.pos = pos
         self.char = char
         self.color = color
@@ -27,13 +41,19 @@ class Entity:
     def pos(self, new_pos) -> None:
         self._x, self._y = new_pos
 
+    def spawn(self: T, pos, game_map: GameMap = None) -> T:
+        clone = copy.deepcopy(self)
+        clone.pos = pos
+        if game_map != None: game_map.entities.add(clone)
+        return clone
+
     def move(self, dx: int, dy: int) -> None:
         self._x += dx
         self._y += dy
 
 class Camera (Entity):
-    def __init__(self, pos: Tuple[int, int], entity: Entity = None):
-        super().__init__(pos, "&", (240, 210, 100))
+    def __init__(self, pos: Tuple[int, int] = None, entity: Entity = None):
+        super().__init__(pos, "&", (240, 210, 100), name="<Camera>")
         self.entity = entity
 
     @classmethod

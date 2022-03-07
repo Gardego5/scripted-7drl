@@ -3,9 +3,9 @@ from html import entities
 import tcod
 
 from engine import Engine
-from entity import Entity
 from input_handlers import EventHandler
 from procgen import generate_dungeon
+import entity_factories
 
 def main() -> None:
     screen_width = 80 
@@ -20,7 +20,7 @@ def main() -> None:
 
     event_handler = EventHandler()
 
-    player = Entity((20, 20), "@", (255, 255, 255))
+    player = entity_factories.player.spawn((20, 20))
 
     game_map = generate_dungeon(map_width, map_height, player=player)
 
