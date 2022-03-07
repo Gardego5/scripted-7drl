@@ -20,7 +20,7 @@ def main() -> None:
 
     event_handler = EventHandler()
 
-    player = Entity(int(screen_width/2), int(screen_height/2), "@", (255, 255, 255))
+    player = Entity(20, 20, "@", (255, 255, 255))
     entities = {player}
 
     game_map = generate_dungeon(map_width, map_height)

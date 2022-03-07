@@ -8,6 +8,9 @@ class GameMap:
     def __init__(self, width: int, height: int) -> None:
         self.width, self.height = width, height
         self.tiles = np.full((width, height), fill_value=tile_types.wall, order="F")
+
+        self.visible = np.full((width, height), fill_value=False, order="F")
+        self.explored = np.full((width, height), fill_value=False, order="F")
     
     def in_bounds(self, x: int, y: int) -> bool:
         """Return True if x and y are inside of the bounds of this map."""
@@ -22,4 +25,8 @@ class GameMap:
         # self.tiles["dark"][xm_1:xm_2, ym_1:ym_2]
         # console.rgb[xc_1:xc_2, yc_1:yc_2]
         # print(f"console.rgb[{xc_1}:{xc_2}, {yc_1}:{yc_2}] = self.tiles[\"dark\"][{xm_1}:{xm_2}, {ym_1}:{ym_2}] [{x}, {y}]")
-        console.rgb[xc_1:xc_2, yc_1:yc_2] = self.tiles["dark"][xm_1:xm_2, ym_1:ym_2]
+        console.rgb[xc_1:xc_2, yc_1:yc_2] = np.select(
+            condlist=[self.visible[xm_1:xm_2, ym_1:ym_2], self.explored[xm_1:xm_2, ym_1:ym_2]],
+            choicelist=[self.tiles["light"][xm_1:xm_2, ym_1:ym_2], self.tiles["dark"][xm_1:xm_2, ym_1:ym_2]],
+            default=tile_types.SHROUD
+        )
