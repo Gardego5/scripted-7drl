@@ -26,6 +26,7 @@ class Entity:
         self.pos = pos
         self.char = char
         self.color = color
+        self.name = name
         self.blocks_movement = blocks_movement
     
     @property

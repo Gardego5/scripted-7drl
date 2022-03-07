@@ -30,6 +30,16 @@ class ActionWithDirection (Action):
 
         self.delta = delta
 
+class MeleeAction (ActionWithDirection):
+    def perform(self, engine: Engine, entity: Entity) -> None:
+        dest = calculator.tuple_add(entity.pos, self.delta)
+
+        target = engine.game_map.get_blocking_entity_at_location(dest)
+        if not target:
+            return 
+        
+        print(f"The {entity.name} kicks the {target.name}.")
+
 class MovementAction (ActionWithDirection):
     def perform(self, engine: Engine, entity: Entity) -> None:
         dest = calculator.tuple_add(entity.pos, self.delta)
@@ -42,3 +52,12 @@ class MovementAction (ActionWithDirection):
             return
         
         entity.move(self.delta)
+
+class BumpAction (ActionWithDirection):
+    def perform(self, engine: Engine, entity: Entity):
+        dest = calculator.tuple_add(entity.pos, self.delta)
+
+        if engine.game_map.get_blocking_entity_at_location(dest):
+            return MeleeAction(self.delta).perform(engine, entity)
+        else:
+            return MovementAction(self.delta).perform(engine, entity)
