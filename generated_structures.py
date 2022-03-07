@@ -92,6 +92,10 @@ class Room:
     def center(self) -> Tuple[int, int]:
         return int((self.x1 + self.x2) / 2), int((self.y1 + self.y2) / 2)
 
+    @property
+    def area(self) -> int:
+        return self.width * self.height
+
     @property  # Defines the slice where this room should exist on the map.
     def bounds(self) -> Tuple[slice, slice]:
         return slice(self.x1, self.x2), slice(self.y1, self.y2)
