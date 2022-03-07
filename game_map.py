@@ -39,7 +39,7 @@ class GameMap:
         console.rgb[xc_1:xc_2, yc_1:yc_2] = np.select(
             condlist=[self.visible[xm_1:xm_2, ym_1:ym_2], self.explored[xm_1:xm_2, ym_1:ym_2]],
             choicelist=[self.tiles["light"][xm_1:xm_2, ym_1:ym_2], self.tiles["dark"][xm_1:xm_2, ym_1:ym_2]],
-            default=tile_types.SHROUD
+            default=self.tiles["dark"][xm_1:xm_2, ym_1:ym_2] # Change to tile_types.SHROUD to enable fog
         )
 
         for entity in self.entities:

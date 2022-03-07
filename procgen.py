@@ -16,9 +16,10 @@ import generated_structures
 def place_entities(
     room: Room,
     dungeon: GameMap,
-    max_monsters: int,
+    max_monsters: int = None,
     min_monsters: int = 0,
 ) -> None:
+    if max_monsters == None: max_monsters = int(room.area/10)
     number_of_monsters = random.randint(min_monsters, max_monsters)
 
     for i in range(number_of_monsters):
@@ -40,11 +41,18 @@ def generate_dungeon(
 ) -> GameMap:
     dungeon = GameMap(map_width, map_height, entities=[player])
     
-    features = [
+    structures = [
         generated_structures.Tower(10, 10, 60, 60),
     ]
 
-    for feature in features:
-        dungeon.tiles[feature.bounds] = feature.tiles
+    simple_structures = []
+
+    for structure in structures:
+        dungeon.tiles[structure.bounds] = structure.tiles
+        if structure.features:
+            simple_structures.extend(structure.features)
+
+    for structure in simple_structures:
+        place_entities(structure, dungeon)
 
     return dungeon
