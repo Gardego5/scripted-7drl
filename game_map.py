@@ -16,6 +16,7 @@ class GameMap:
         self, 
         width: int, height: int,
         entities: Iterable[Entity] = (),
+        fog: bool = True,
     ) -> None:
         self.width, self.height = width, height
         self.entities = set(entities)
@@ -25,6 +26,7 @@ class GameMap:
         # To keep track of what the player should see.
         self.visible = np.full((width, height), fill_value=False, order="F")
         self.explored = np.full((width, height), fill_value=False, order="F")
+        self.fog = fog
     
     def get_blocking_entity_at_location(self, pos: Tuple[int, int]) -> Optional[Entity]:
         for entity in self.entities:
@@ -43,11 +45,18 @@ class GameMap:
         xm_2, ym_2 = min(xm + console.width, self.width), min(ym + console.height, self.height)
         xc_1, yc_1 = max(0, -xm), max(0, -ym)
         xc_2, yc_2 = xc_1 + xm_2 - xm_1, yc_1 + ym_2 - ym_1
-        console.rgb[xc_1:xc_2, yc_1:yc_2] = np.select(
-            condlist=[self.visible[xm_1:xm_2, ym_1:ym_2], self.explored[xm_1:xm_2, ym_1:ym_2]],
-            choicelist=[self.tiles["light"][xm_1:xm_2, ym_1:ym_2], self.tiles["dark"][xm_1:xm_2, ym_1:ym_2]],
-            default=self.tiles["dark"][xm_1:xm_2, ym_1:ym_2] # Change to tile_types.SHROUD to enable fog
-        )
+        if self.fog:
+            console.rgb[xc_1:xc_2, yc_1:yc_2] = np.select(
+                condlist=[self.visible[xm_1:xm_2, ym_1:ym_2], self.explored[xm_1:xm_2, ym_1:ym_2]],
+                choicelist=[self.tiles["light"][xm_1:xm_2, ym_1:ym_2], self.tiles["dark"][xm_1:xm_2, ym_1:ym_2]],
+                default=tile_types.SHROUD
+            )
+        else:
+            console.rgb[xc_1:xc_2, yc_1:yc_2] = np.select(
+                condlist=[self.visible[xm_1:xm_2, ym_1:ym_2], self.explored[xm_1:xm_2, ym_1:ym_2]],
+                choicelist=[self.tiles["light"][xm_1:xm_2, ym_1:ym_2], self.tiles["dark"][xm_1:xm_2, ym_1:ym_2]],
+                default=self.tiles["dark"][xm_1:xm_2, ym_1:ym_2]
+            )
 
         for entity in self.entities:
             # Only print entities that are in the FOV
