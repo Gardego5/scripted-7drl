@@ -371,6 +371,6 @@ class Tower (Room):
             # Pick a random room type
             roomType = random.choice(self.room_options)
             # Generate the room and add it to features
-            self.features = [roomType(self.x1, self.x2, self.width, self.height, self.palette)]
+            self.features = [roomType(self.x1, self.y1, self.width, self.height, self.palette)]
             # Make this Tower's tiles the same as the feature just generated.
             self.tiles = self.features[0].tiles
