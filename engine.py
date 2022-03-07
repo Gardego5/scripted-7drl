@@ -7,7 +7,7 @@ from tcod.console import Console
 from tcod.map import compute_fov
 
 from actions import EscapeAction, MovementAction
-from entity import Entity
+from entity import Entity, Camera
 from game_map import GameMap
 from input_handlers import EventHandler
 from tile_types import SHROUD
@@ -22,6 +22,7 @@ class Engine:
         self.event_handler = event_handler
         self.game_map = game_map
         self.player = player
+        self.camera = Camera.from_entity(player)
         self.update_fov()
 
     def handle_events(self, events: Iterable[Any]) -> None:
@@ -45,13 +46,9 @@ class Engine:
         self.game_map.explored |= self.game_map.visible
     
     def render(self, console: Console, context: Context) -> None:
-        self.game_map.render(console, self.player.x, self.player.y)
+        self.camera.follow()
 
-        """
-        for entity in self.entities:
-            if self.game_map.visible[entity.x, entity.y]:
-                console.print(entity.x - self.player.x + int(console.width/2), entity.y - self.player.y + int(console.height/2), entity.char, fg=entity.color)
-        """
+        self.game_map.render(console, self.camera)
 
         context.present(console)
 
