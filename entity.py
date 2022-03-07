@@ -10,6 +10,8 @@ T = TypeVar("T", bound="Entity")
 
 from numpy import char
 
+import calculator
+
 class Entity:
     """
     A generic object to represent players, enemies, items, etc.
@@ -24,6 +26,7 @@ class Entity:
         self.pos = pos
         self.char = char
         self.color = color
+        self.blocks_movement = blocks_movement
     
     @property
     def x(self) -> int:
@@ -47,9 +50,8 @@ class Entity:
         if game_map != None: game_map.entities.add(clone)
         return clone
 
-    def move(self, dx: int, dy: int) -> None:
-        self._x += dx
-        self._y += dy
+    def move(self, delta: Tuple[int, int]) -> None:
+        self.pos = calculator.tuple_add(self.pos, delta)
 
 class Camera (Entity):
     def __init__(self, pos: Tuple[int, int] = None, entity: Entity = None):

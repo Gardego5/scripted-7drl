@@ -6,6 +6,8 @@ if TYPE_CHECKING:
     from engine import Engine
     from entity import Entity
 
+import calculator
+
 class Action:
     def perform(self, engine: Engine, entity: Entity) -> None:
         """Perform this action with the objects needed to determine its scope.
@@ -18,23 +20,25 @@ class Action:
         """
         raise NotImplementedError()
 
-class EscapeAction(Action):
+class EscapeAction (Action):
     def perform(self, engine: Engine, entity: Entity) -> None:
         raise SystemExit()
 
-class MovementAction(Action):
-    def __init__(self, dx: int, dy: int) -> None:
+class ActionWithDirection (Action):
+    def __init__(self, delta: Tuple[int, int]) -> None:
         super().__init__()
-        
-        self.dx = dx
-        self.dy = dy
 
+        self.delta = delta
+
+class MovementAction (ActionWithDirection):
     def perform(self, engine: Engine, entity: Entity) -> None:
-        dest_x, dest_y = entity.x + self.dx, entity.y + self.dy
+        dest = calculator.tuple_add(entity.pos, self.delta)
 
-        if not engine.game_map.in_bounds(dest_x, dest_y):
+        if not engine.game_map.in_bounds(dest):
             return  # Destination out of bounds.
-        if not engine.game_map.tiles["walkable"][dest_x, dest_y]:
+        if not engine.game_map.tiles["walkable"][dest]:
             return  # Destination not walkable.
+        if engine.game_map.get_blocking_entity_at_location(dest):
+            return
         
-        entity.move(self.dx, self.dy)
+        entity.move(self.delta)

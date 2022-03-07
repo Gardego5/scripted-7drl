@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Iterable, TYPE_CHECKING
+from typing import Tuple, Iterable, Optional, TYPE_CHECKING
 
 import numpy as np
 from tcod.console import Console
@@ -22,12 +22,19 @@ class GameMap:
 
         self.tiles = np.full((width, height), fill_value=tile_types.wall, order="F")
 
+        # To keep track of what the player should see.
         self.visible = np.full((width, height), fill_value=False, order="F")
         self.explored = np.full((width, height), fill_value=False, order="F")
     
-    def in_bounds(self, x: int, y: int) -> bool:
+    def get_blocking_entity_at_location(self, pos: Tuple[int, int]) -> Optional[Entity]:
+        for entity in self.entities:
+            if entity.blocks_movement and entity.pos == pos:
+                return entity
+        return None
+
+    def in_bounds(self, pos: Tuple[int, int]) -> bool:
         """Return True if x and y are inside of the bounds of this map."""
-        return 0 <= x < self.width and 0 <= y < self.height
+        return 0 <= pos[0] < self.width and 0 <= pos[1] < self.height
     
     def render(self, console: Console, camera: Camera) -> None:  # (x, y) is camera location
         # Calculate Bounds for drawing map.
@@ -44,7 +51,7 @@ class GameMap:
 
         for entity in self.entities:
             # Only print entities that are in the FOV
-            if self.visible[entity.x, entity.y]:
+            if self.visible[entity.pos]:
                 console.print(
                     x=entity.x - camera.x + int(console.width/2), 
                     y=entity.y - camera.y + int(console.height/2), 

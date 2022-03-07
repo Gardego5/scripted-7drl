@@ -15,13 +15,13 @@ class EventHandler(tcod.event.EventDispatch[Action]):
         key = event.sym
 
         if key in keybinds.up:
-            action = MovementAction(dx=0, dy=-1)
+            action = MovementAction((0, -1))
         elif key in keybinds.down:
-            action = MovementAction(dx=0, dy=1)
+            action = MovementAction((0, 1))
         elif key in keybinds.left:
-            action = MovementAction(dx=-1, dy=0)
+            action = MovementAction((-1, 0))
         elif key in keybinds.right:
-            action = MovementAction(dx=1, dy=0)
+            action = MovementAction((1, 0))
 
         elif key in keybinds.escape:
             action = EscapeAction()
