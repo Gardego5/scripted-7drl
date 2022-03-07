@@ -9,7 +9,7 @@ from procgen import generate_dungeon
 
 def main() -> None:
     screen_width = 80 
-    screen_height = 80
+    screen_height = 60
 
     map_width = 80
     map_height = 80
@@ -21,11 +21,10 @@ def main() -> None:
     event_handler = EventHandler()
 
     player = Entity(20, 20, "@", (255, 255, 255))
-    entities = {player}
 
-    game_map = generate_dungeon(map_width, map_height)
+    game_map = generate_dungeon(map_width, map_height, player=player)
 
-    engine = Engine(entities=entities, event_handler=event_handler, game_map=game_map, player=player)
+    engine = Engine(event_handler=event_handler, game_map=game_map, player=player)
 
     with tcod.context.new_terminal(
         screen_width,

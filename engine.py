@@ -13,8 +13,12 @@ from input_handlers import EventHandler
 from tile_types import SHROUD
 
 class Engine:
-    def __init__(self, entities : Set[Entity], event_handler: EventHandler, game_map: GameMap, player: Entity) -> None:
-        self.entities = entities
+    def __init__(
+        self, 
+        event_handler: EventHandler, 
+        game_map: GameMap, 
+        player: Entity
+    ) -> None:
         self.event_handler = event_handler
         self.game_map = game_map
         self.player = player
@@ -43,9 +47,11 @@ class Engine:
     def render(self, console: Console, context: Context) -> None:
         self.game_map.render(console, self.player.x, self.player.y)
 
+        """
         for entity in self.entities:
             if self.game_map.visible[entity.x, entity.y]:
                 console.print(entity.x - self.player.x + int(console.width/2), entity.y - self.player.y + int(console.height/2), entity.char, fg=entity.color)
+        """
 
         context.present(console)
 
