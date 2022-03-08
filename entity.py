@@ -111,7 +111,7 @@ class Actor (Entity):
 
 class Camera (Entity):
     def __init__(self, pos: Tuple[int, int] = None, entity: Entity = None):
-        super().__init__(pos=pos, char="&", color=(240, 210, 100), name="<Camera>")
+        super().__init__(pos=pos, char="&", color=(240, 100, 100), name="<Camera>")
         self.entity = entity
 
     @classmethod
@@ -129,3 +129,8 @@ class Camera (Entity):
     def game_map_to_console(self, console: Console, pos: Tuple[int, int] = (0, 0)) -> Tuple[int, int]:
         offset = calculator.tuple_subtract(self.pos, (int(console.width / 2), int(console.height / 2)))
         return calculator.tuple_subtract(pos, offset)
+
+    def render(self, console: Console) -> None:
+        x, y = self.game_map_to_console(console, self.pos)
+        console.print(x + 1, y - 1, "L", fg = self.color)
+        console.print(x + 2, y - 2, self.char, fg = self.color)
