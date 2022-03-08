@@ -15,11 +15,17 @@ class EventHandler (tcod.event.EventDispatch[Action]):
     def __init__(self, engine: Engine):
         self.engine = engine
 
-    def handle_events(self) -> None:
-        return NotImplementedError()
+    def handle_events(self, context: tcod.context.Context) -> None:
+        for event in tcod.event.wait():
+            context.convert_event(event)
+            self.dispatch(event)
 
     def ev_quit(self, event: tcod.event.Quit) -> Optional[Action]:
         raise SystemExit()
+    
+    def on_render(self, console: tcod.console) -> None:
+        self.engine.camera.follow()  # Update the camera's position
+        self.engine.render(console)  # Render everything
 
     @property
     def player(self) -> Actor:
@@ -27,8 +33,10 @@ class EventHandler (tcod.event.EventDispatch[Action]):
 
 
 class MainGameEventHandler (EventHandler):
-    def handle_events(self) -> None:
+    def handle_events(self, context: tcod.context.Context) -> None:
         for event in tcod.event.wait():
+            context.convert_event(event)
+
             action = self.dispatch(event)
 
             if action is None:
@@ -56,7 +64,7 @@ class MainGameEventHandler (EventHandler):
 
 
 class GameOverEventHandler (EventHandler):
-    def handle_events(self) -> None:
+    def handle_events(self, context: tcod.context.Context) -> None:
         for event in tcod.event.wait():
             action = self.dispatch(event)
 

@@ -12,7 +12,6 @@ from game_map import GameMap
 from input_handlers import MainGameEventHandler
 from message_log import MessageLog
 from render_functions import render_health_bar
-from tile_types import SHROUD
 
 if TYPE_CHECKING:
     from entity import Entity
@@ -45,15 +44,10 @@ class Engine:
 
         self.game_map.explored |= self.game_map.visible
     
-    def render(self, console: Console, context: Context) -> None:
-        self.camera.follow()
-
+    def render(self, console: Console) -> None:
+        # Render Game Map
         self.game_map.render(console, self.camera)
 
+        # Render UI Elements
         render_health_bar(console, self.player.fighter.hp, self.player.fighter.max_hp)
-
         self.message_log.render(console, console.width - 42, console.height - 5, 40, 5)
-
-        context.present(console)
-
-        console.clear(SHROUD["ch"], SHROUD["fg"], SHROUD["bg"])

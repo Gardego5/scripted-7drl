@@ -6,6 +6,7 @@ import color
 from engine import Engine
 from procgen import generate_dungeon
 import entity_factories
+from tile_types import SHROUD
 
 def main() -> None:
     screen_width = 80 
@@ -38,9 +39,11 @@ def main() -> None:
     ) as context:
         root_console = tcod.Console(screen_width, screen_height, order="F")
         while True:
-            engine.render(console=root_console, context=context)
+            root_console.clear(SHROUD["ch"], SHROUD["fg"], SHROUD["bg"])
+            engine.event_handler.on_render(console=root_console)
+            context.present(root_console)
             
-            engine.event_handler.handle_events()
+            engine.event_handler.handle_events(context)
 
 
 if __name__ == "__main__":
