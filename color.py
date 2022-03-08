@@ -6,6 +6,9 @@ gray_25                 = 0x40, 0x40, 0x40
 gray_15                 = 0x26, 0x26, 0x26
 black                   = 0x00, 0x00, 0x00
 
+ui_main                 = gray_85
+ui_subdued              = gray_50
+
 player_atk              = 0xE0, 0xE0, 0xE0
 enemy_atk               = 0xFF, 0xC0, 0xC0
 

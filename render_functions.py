@@ -6,6 +6,8 @@ import color
 
 if TYPE_CHECKING:
     from tcod import Console
+    from engine import Engine
+    from game_map import GameMap
 
 def print_vertical(
     x: int, y: int,
@@ -40,6 +42,19 @@ def render_bar(
         if bar_size > 0:
             console.draw_rect(x=x, y=y, width=1, height=bar_size, ch=1, bg=color_filled)
         print_vertical(x, y, console, string=f"{string} {current_value}~{maximum_value}", fg=color_text)
+
+def render_names_at_mouse_location(
+    console: Console,
+    x: int, y: int,
+    engine: Engine,
+) -> None:
+    game_map_pos = engine.game_map.pos_from_console_pos(engine.mouse_location, console, engine.camera)
+
+    names = ""
+    if engine.game_map.in_bounds(game_map_pos) and engine.game_map.visible[game_map_pos]:
+        names = ", ".join(entity.name for entity in engine.game_map.entities if entity.pos == game_map_pos)
+
+    console.print(x, y, names, fg=color.ui_subdued)
 
 def render_health_bar(
     console: Console,

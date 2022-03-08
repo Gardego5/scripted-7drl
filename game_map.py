@@ -7,6 +7,7 @@ from tcod.console import Console
 
 from entity import Actor
 import tile_types
+import calculator
 
 if TYPE_CHECKING:
     from entity import Entity, Camera
@@ -56,9 +57,13 @@ class GameMap:
         """Return True if x and y are inside of the bounds of this map."""
         return 0 <= pos[0] < self.width and 0 <= pos[1] < self.height
     
+    def pos_from_console_pos(self, pos: Tuple[int, int], console: Console, camera: Camera) -> Tuple[int, int]:
+        zero = calculator.tuple_subtract(camera.pos, (int(console.width / 2), int(console.height / 2)))
+        return calculator.tuple_add(pos, zero)
+
     def render(self, console: Console, camera: Camera) -> None:  # (x, y) is camera location
         # Calculate Bounds for drawing map.
-        xm, ym = camera.x - int(console.width / 2), camera.y - int(console.height / 2)
+        xm, ym = self.pos_from_console_pos((0, 0), console, camera)
         xm_1, ym_1 = max(0, xm), max(0, ym)
         xm_2, ym_2 = min(xm + console.width, self.width), min(ym + console.height, self.height)
         xc_1, yc_1 = max(0, -xm), max(0, -ym)

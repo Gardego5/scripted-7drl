@@ -11,7 +11,7 @@ from entity import Actor, Camera
 from game_map import GameMap
 from input_handlers import MainGameEventHandler
 from message_log import MessageLog
-from render_functions import render_health_bar
+from render_functions import render_health_bar, render_names_at_mouse_location
 
 if TYPE_CHECKING:
     from entity import Entity
@@ -26,6 +26,7 @@ class Engine:
         player: Actor,
     ) -> None:
         self.event_handler: EventHandler = MainGameEventHandler(self)
+        self.mouse_location = (0, 0)
         self.player = player
         self.message_log = MessageLog()
         self.camera = Camera.from_entity(player)
@@ -50,4 +51,5 @@ class Engine:
 
         # Render UI Elements
         render_health_bar(console, self.player.fighter.hp, self.player.fighter.max_hp)
+        render_names_at_mouse_location(console, 2, console.height - 5, self)
         self.message_log.render(console, console.width - 42, console.height - 5, 40, 5)
