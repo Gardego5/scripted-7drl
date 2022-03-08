@@ -48,7 +48,7 @@ def generate_dungeon(
 ) -> GameMap:
     player = engine.player
 
-    dungeon = GameMap(engine, map_width, map_height, entities=[player], fog=False)
+    dungeon = GameMap(engine, map_width, map_height, entities=[player])
     
     structures = [
         generated_structures.Tower(10, 10, 60, 60),
