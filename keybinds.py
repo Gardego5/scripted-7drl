@@ -1,5 +1,6 @@
 import tcod.event
 
+# Keybinds for Main Game
 MOVE_KEYS = {
     # Arrow keys.
     tcod.event.K_UP: (0, -1),
@@ -35,4 +36,24 @@ WAIT_KEYS = {
 QUIT_KEYS = {
     tcod.event.K_ESCAPE,
     tcod.event.K_q,
+}
+
+OPEN_HISTORY_VIEWER_KEYS = {
+    tcod.event.K_v,
+}
+
+# Keybinds for History Viewer
+CURSOR_Y_KEYS = {
+    tcod.event.K_UP: -1,
+    tcod.event.K_DOWN: 1, 
+    tcod.event.K_PAGEUP: -10,
+    tcod.event.K_PAGEDOWN: 10,
+}
+
+CURSOR_BEGINNING_KEYS = {
+    tcod.event.K_HOME,
+}
+
+CURSOR_END_KEYS = {
+    tcod.event.K_END,
 }
