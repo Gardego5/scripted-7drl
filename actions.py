@@ -4,6 +4,7 @@ from typing import Optional, Tuple, TYPE_CHECKING
 
 import calculator
 import color
+import exceptions
 
 if TYPE_CHECKING:
     from engine import Engine
@@ -57,7 +58,7 @@ class ActionWithDirection (Action):
 class MeleeAction (ActionWithDirection):
     def perform(self) -> None:
         if not self.target_actor:
-            return 
+            raise exceptions.Impossible("Nothing to attack.") 
         
         damage = self.entity.fighter.power - self.target_actor.fighter.defence
 
@@ -74,12 +75,10 @@ class MeleeAction (ActionWithDirection):
 
 class MovementAction (ActionWithDirection):
     def perform(self) -> None:
-        if not self.engine.game_map.in_bounds(self.dest):
-            return  # Destination out of bounds.
-        if not self.engine.game_map.tiles["walkable"][self.dest]:
-            return  # Destination not walkable.
-        if self.target_blocking_entity:
-            return
+        if not self.engine.game_map.in_bounds(self.dest) or \
+            not self.engine.game_map.tiles["walkable"][self.dest] or \
+            self.target_blocking_entity:
+            raise exceptions.Impossible("That way is blocked")
         
         self.entity.move(self.delta)
 
