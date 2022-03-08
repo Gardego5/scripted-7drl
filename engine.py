@@ -10,7 +10,7 @@ from actions import EscapeAction, MovementAction
 from entity import Actor, Camera
 from game_map import GameMap
 from input_handlers import MainGameEventHandler
-from render_functions import render_bar
+from render_functions import render_health_bar
 from tile_types import SHROUD
 
 if TYPE_CHECKING:
@@ -48,7 +48,7 @@ class Engine:
 
         self.game_map.render(console, self.camera)
 
-        render_bar(console.width - 2, 1, console, current_value=self.player.fighter.hp, maximum_value=self.player.fighter.max_hp, total_size=20, horizontal=False)
+        render_health_bar(console, self.player.fighter.hp, self.player.fighter.max_hp)
 
         context.present(console)
 

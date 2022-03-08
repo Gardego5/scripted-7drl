@@ -22,7 +22,8 @@ def render_bar(
     x: int, y: int, 
     console: Console,
     *,
-    current_value: int, maximum_value: int, total_size: int, horizontal: bool = True,
+    current_value: int, maximum_value: int, total_size: int, horizontal: bool = False,
+    string: str = "",
     color_empty: Optional[Tuple[int, int, int]] = color.hp_bar_empty,
     color_filled: Optional[Tuple[int, int, int]] = color.hp_bar_filled,
     color_text: Optional[Tuple[int, int, int]] = color.hp_bar_text,
@@ -33,9 +34,24 @@ def render_bar(
         console.draw_rect(x=x, y=y, width=total_size, height=1, ch=1, bg=color_empty)
         if bar_size > 0:
             console.draw_rect(x=x, y=y, width=bar_size, height=1, ch=1, bg=color_filled)
-        console.print(x=x+1, y=y, string=f" {current_value} / {maximum_value}", fg=color_text)
+        console.print(x=x+1, y=y, string=f"{string} {current_value} / {maximum_value}", fg=color_text)
     else:
         console.draw_rect(x=x, y=y, width=1, height=total_size, ch=1, bg=color_empty)
         if bar_size > 0:
             console.draw_rect(x=x, y=y, width=1, height=bar_size, ch=1, bg=color_filled)
-        print_vertical(x, y, console, string=f" {current_value}~{maximum_value}", fg=color_text)
+        print_vertical(x, y, console, string=f"{string} {current_value}~{maximum_value}", fg=color_text)
+
+def render_health_bar(
+    console: Console,
+    current_hp: int,
+    max_hp: int,
+) -> None:
+    render_bar(
+        console.width - 2, 1, console,
+        current_value = current_hp, maximum_value = max_hp, total_size = 20,
+    )
+    print_vertical(
+        console.width - 2, 22, console,
+        string = " HP ",
+        fg = color.hp_bar_text, bg = color.hp_bar_filled
+    )
