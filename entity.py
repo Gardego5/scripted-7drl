@@ -3,7 +3,10 @@ from __future__ import annotations
 import copy
 from typing import Optional, Tuple, TypeVar, TYPE_CHECKING
 
+from tcod import Console
+
 from render_order import RenderOrder
+import calculator
 
 if TYPE_CHECKING:
     from components.ai import BaseAI
@@ -118,3 +121,11 @@ class Camera (Entity):
     def follow(self, entity: Entity = None):
         if entity != None: self.entity = entity
         self.pos = self.entity.pos
+
+    def console_to_game_map(self, console: Console, pos: Tuple[int, int] = (0, 0)) -> Tuple[int, int]:
+        zero = calculator.tuple_subtract(self.pos, (int(console.width / 2), int(console.height / 2)))
+        return calculator.tuple_add(pos, zero)
+    
+    def game_map_to_console(self, console: Console, pos: Tuple[int, int] = (0, 0)) -> Tuple[int, int]:
+        offset = calculator.tuple_subtract(self.pos, (int(console.width / 2), int(console.height / 2)))
+        return calculator.tuple_subtract(pos, offset)

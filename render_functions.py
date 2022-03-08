@@ -48,7 +48,7 @@ def render_names_at_mouse_location(
     x: int, y: int,
     engine: Engine,
 ) -> None:
-    game_map_pos = engine.game_map.pos_from_console_pos(engine.mouse_location, console, engine.camera)
+    game_map_pos = engine.camera.console_to_game_map(console, engine.mouse_location)
 
     names = ""
     if engine.game_map.in_bounds(game_map_pos) and engine.game_map.visible[game_map_pos]:
