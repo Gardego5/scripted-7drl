@@ -5,6 +5,7 @@ from typing import Tuple, Iterable, Optional, TYPE_CHECKING
 import numpy as np
 from tcod.console import Console
 
+from entity import Actor
 import tile_types
 
 if TYPE_CHECKING:
@@ -30,11 +31,25 @@ class GameMap:
         self.visible = np.full((width, height), fill_value=False, order="F")
         self.explored = np.full((width, height), fill_value=False, order="F")
         self.fog = fog
-    
+
+    @property
+    def actors(self) -> Iterator[Actor]:
+        yield from (
+            entity 
+            for entity in self.entities
+            if isinstance(entity, Actor) and entity.is_alive
+        )
+
     def get_blocking_entity_at_location(self, pos: Tuple[int, int]) -> Optional[Entity]:
         for entity in self.entities:
             if entity.blocks_movement and entity.pos == pos:
                 return entity
+        return None
+
+    def get_actor_at_location(self, pos: Tuple[int, int]):
+        for actor in self.actors:
+            if actor.pos == pos:
+                return actor
         return None
 
     def in_bounds(self, pos: Tuple[int, int]) -> bool:

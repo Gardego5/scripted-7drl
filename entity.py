@@ -20,7 +20,8 @@ class Entity:
     game_map: GameMap
 
     def __init__(
-        self, 
+        self,
+        *,
         game_map: Optional[GameMap] = None,
         pos: Tuple[int, int] = (None, None), 
         char: str = "?", color: Tuple[int, int, int] = (None, None, None),
@@ -69,6 +70,34 @@ class Entity:
 
     def move(self, delta: Tuple[int, int]) -> None:
         self.pos = calculator.tuple_add(self.pos, delta)
+
+class Actor (Entity):
+    def __init__(
+        self,
+        *,
+        pos: Tuple[int, int] = (None, None),
+        char: str = "?",
+        color: Tuple[int, int, int] = (None, None, None),
+        name: str = "<Unnamed>",
+        blocks_movement: bool = True,
+        ai_cls: Type[BaseAI],
+        fighter: Fighter,
+    ) -> None:
+        super().__init__(
+            pos=pos,
+            char=char,
+            color=color,
+            name=name,
+            blocks_movement=blocks_movement,
+        )
+        self.ai: Optional[BaseAI] = ai_cls(self)
+
+        self.fighter = fighter
+        self.fighter.entity = self
+
+    @property
+    def is_alive(self) -> bool:
+        return bool(self.ai)
 
 class Camera (Entity):
     def __init__(self, pos: Tuple[int, int] = None, entity: Entity = None):
