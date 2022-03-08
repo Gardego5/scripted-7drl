@@ -4,7 +4,7 @@ from typing import Optional, TYPE_CHECKING
 
 import tcod.event
 
-from actions import Action, EscapeAction, BumpAction
+from actions import Action, EscapeAction, BumpAction, WaitAction
 import keybinds
 
 if TYPE_CHECKING:
@@ -36,16 +36,12 @@ class EventHandler(tcod.event.EventDispatch[Action]):
 
         player = self.engine.player
 
-        if key in keybinds.up:
-            action = BumpAction(player, (0, -1))
-        elif key in keybinds.down:
-            action = BumpAction(player, (0, 1))
-        elif key in keybinds.left:
-            action = BumpAction(player, (-1, 0))
-        elif key in keybinds.right:
-            action = BumpAction(player, (1, 0))
-
-        elif key in keybinds.escape:
+        if key in keybinds.MOVE_KEYS:
+            delta = keybinds.MOVE_KEYS[key]
+            action = BumpAction(player, delta)
+        elif key in keybinds.WAIT_KEYS:
+            action = WaitAction(player)
+        elif key in keybinds.QUIT_KEYS:
             action = EscapeAction(player)
         
         return action
