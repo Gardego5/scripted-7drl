@@ -2,6 +2,7 @@ from asyncio import events
 from html import entities
 import tcod
 
+import color
 from engine import Engine
 from procgen import generate_dungeon
 import entity_factories
@@ -24,6 +25,9 @@ def main() -> None:
     engine.game_map = generate_dungeon(map_width, map_height, engine=engine)
 
     engine.update_fov()
+    
+    engine.message_log.add_message("You boot up.", color.welcome_text)
+    engine.message_log.add_message("Wait; You boot up?!", color.welcome_text)
 
     with tcod.context.new_terminal(
         screen_width,

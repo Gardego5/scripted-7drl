@@ -10,6 +10,7 @@ from actions import EscapeAction, MovementAction
 from entity import Actor, Camera
 from game_map import GameMap
 from input_handlers import MainGameEventHandler
+from message_log import MessageLog
 from render_functions import render_health_bar
 from tile_types import SHROUD
 
@@ -27,6 +28,7 @@ class Engine:
     ) -> None:
         self.event_handler: EventHandler = MainGameEventHandler(self)
         self.player = player
+        self.message_log = MessageLog()
         self.camera = Camera.from_entity(player)
 
     def handle_enemy_turns(self) -> None:
@@ -49,6 +51,8 @@ class Engine:
         self.game_map.render(console, self.camera)
 
         render_health_bar(console, self.player.fighter.hp, self.player.fighter.max_hp)
+
+        self.message_log.render(console, console.width - 42, console.height - 5, 40, 5)
 
         context.present(console)
 
