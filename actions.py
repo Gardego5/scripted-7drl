@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 import calculator
 
 class Action:
-    def __init__(self, entity: Entity) -> None:
+    def __init__(self, entity: Actor) -> None:
         self.entity = entity
     
     @property
@@ -36,7 +36,7 @@ class WaitAction (Action):
         pass
 
 class ActionWithDirection (Action):
-    def __init__(self, entity: Entity, delta: Tuple[int, int]) -> None:
+    def __init__(self, entity: Actor, delta: Tuple[int, int]) -> None:
         super().__init__(entity)
 
         self.delta = delta
@@ -46,15 +46,26 @@ class ActionWithDirection (Action):
         return calculator.tuple_add(self.entity.pos, self.delta)
 
     @property
-    def target(self):
+    def target_blocking_entity(self) -> Optional[Entity]:
         return self.engine.game_map.get_blocking_entity_at_location(self.dest)
+
+    @property
+    def target_actor(self) -> Optional[Actor]:
+        return self.engine.game_map.get_actor_at_location(self.dest)
 
 class MeleeAction (ActionWithDirection):
     def perform(self) -> None:
-        if not self.target:
+        if not self.target_actor:
             return 
         
-        print(f"The {self.entity.name} kicks the {self.target.name}.")
+        damage = self.entity.fighter.power - self.target_actor.fighter.defence
+
+        attack_desc = f"{self.entity.name} attacks {self.target_actor.name}"
+        if damage > 0:
+            print(f"{attack_desc} for {damage} hit points.")
+            self.target_actor.fighter.hp -= damage
+        else:
+            print(f"{attack_desc} but does no damage.")
 
 class MovementAction (ActionWithDirection):
     def perform(self) -> None:
@@ -62,14 +73,14 @@ class MovementAction (ActionWithDirection):
             return  # Destination out of bounds.
         if not self.engine.game_map.tiles["walkable"][self.dest]:
             return  # Destination not walkable.
-        if self.engine.game_map.get_blocking_entity_at_location(self.dest):
+        if self.target_blocking_entity:
             return
         
         self.entity.move(self.delta)
 
 class BumpAction (ActionWithDirection):
     def perform(self):
-        if self.engine.game_map.get_blocking_entity_at_location(self.dest):
+        if self.target_actor:
             return MeleeAction(self.entity, self.delta).perform()
         else:
             return MovementAction(self.entity, self.delta).perform()
