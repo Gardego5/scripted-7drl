@@ -76,7 +76,9 @@ class GameMap:
                 default=self.tiles["dark"][xm_1:xm_2, ym_1:ym_2]
             )
 
-        for entity in self.entities:
+        entities_sorted_for_rendering = sorted(self.entities, key = lambda x: x.render_order.value)
+
+        for entity in entities_sorted_for_rendering:
             # Only print entities that are in the FOV
             if self.visible[entity.pos]:
                 console.print(

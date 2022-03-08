@@ -7,23 +7,24 @@ from tcod.console import Console
 from tcod.map import compute_fov
 
 from actions import EscapeAction, MovementAction
-from entity import Entity, Camera
+from entity import Actor, Camera
 from game_map import GameMap
-from input_handlers import EventHandler
+from input_handlers import MainGameEventHandler
 from tile_types import SHROUD
 
 if TYPE_CHECKING:
     from entity import Entity
     from game_map import GameMap
+    from input_handlers import EventHandler
 
 class Engine:
     game_map: GameMap
 
     def __init__(
         self,
-        player: Entity,
+        player: Actor,
     ) -> None:
-        self.event_handler: EventHandler = EventHandler(self)
+        self.event_handler: EventHandler = MainGameEventHandler(self)
         self.player = player
         self.camera = Camera.from_entity(player)
 
@@ -45,6 +46,8 @@ class Engine:
         self.camera.follow()
 
         self.game_map.render(console, self.camera)
+
+        console.print(1, 2, f"HP: {self.player.fighter.hp}/{self.player.fighter.max_hp}")
 
         context.present(console)
 
