@@ -9,15 +9,18 @@ import tile_types
 
 if TYPE_CHECKING:
     from entity import Entity, Camera
+    from engine import Engine
 
 
 class GameMap:
     def __init__(
         self, 
+        engine: Engine,
         width: int, height: int,
         entities: Iterable[Entity] = (),
         fog: bool = True,
     ) -> None:
+        self.engine = engine
         self.width, self.height = width, height
         self.entities = set(entities)
 

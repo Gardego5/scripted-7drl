@@ -14,6 +14,21 @@ import generated_structures
 import entity_factories
 
 
+def place_an_entity_randomly(
+    room: Room,
+    dungeon: GameMap,
+    entity: Entity,
+) -> None:
+    i = 0
+    while i < room.area:  # Choose location for new entity
+        pos = random.randint(room.x1, room.x2), random.randint(room.y1, room.y2)
+        # Increment counter if entity already at chosen site to prevent infinite loop.
+        if any(entity.pos == pos for entity in dungeon.entities): i += 1
+        # If no entity already at chosen site and site is walkable, break loop and use chosen site
+        elif dungeon.tiles[pos]["walkable"]: break
+
+    entity.place(pos, dungeon)
+
 def place_entities(
     room: Room,
     dungeon: GameMap,
@@ -24,22 +39,16 @@ def place_entities(
     number_of_monsters = random.randint(min_monsters, max_monsters)
 
     for i in range(number_of_monsters):
-        while i < room.area:  # Choose location for new entity
-            pos = random.randint(room.x1, room.x2), random.randint(room.y1, room.y2)
-            # Increment counter if entity already at chosen site to prevent infinite loop.
-            if any(entity.pos == pos for entity in dungeon.entities): i += 1
-            # If no entity already at chosen site and site is walkable, break loop and use chosen site
-            elif dungeon.tiles[pos]["walkable"]: break
-
-        random.choices(entity_factories.enemies, entity_factories.enemies_weights)[0].spawn(pos, dungeon)
-        
-
+        chosen_monster = random.choices(entity_factories.enemies, entity_factories.enemies_weights)[0].spawn()
+        place_an_entity_randomly(room, dungeon, chosen_monster)
 
 def generate_dungeon(
     map_width: int, map_height: int,
-    player: Entity,
+    engine: engine,
 ) -> GameMap:
-    dungeon = GameMap(map_width, map_height, entities=[player], fog=False)
+    player = engine.player
+
+    dungeon = GameMap(engine, map_width, map_height, entities=[player], fog=False)
     
     structures = [
         generated_structures.Tower(10, 10, 60, 60),
@@ -54,5 +63,7 @@ def generate_dungeon(
 
     for structure in simple_structures:
         place_entities(structure, dungeon)
+
+    place_an_entity_randomly(random.choice(simple_structures), dungeon, player)
 
     return dungeon

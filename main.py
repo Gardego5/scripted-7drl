@@ -3,7 +3,6 @@ from html import entities
 import tcod
 
 from engine import Engine
-from input_handlers import EventHandler
 from procgen import generate_dungeon
 import entity_factories
 
@@ -18,13 +17,13 @@ def main() -> None:
         "dejavu10x10_gs_tc.png", 32, 8, tcod.tileset.CHARMAP_TCOD
     )
 
-    event_handler = EventHandler()
+    player = entity_factories.player.spawn()
 
-    player = entity_factories.player.spawn((20, 20))
+    engine = Engine(player=player)
 
-    game_map = generate_dungeon(map_width, map_height, player=player)
+    engine.game_map = generate_dungeon(map_width, map_height, engine=engine)
 
-    engine = Engine(event_handler=event_handler, game_map=game_map, player=player)
+    engine.update_fov()
 
     with tcod.context.new_terminal(
         screen_width,
@@ -36,8 +35,8 @@ def main() -> None:
         root_console = tcod.Console(screen_width, screen_height, order="F")
         while True:
             engine.render(console=root_console, context=context)
-            events = tcod.event.wait()
-            engine.handle_events(events)
+            
+            engine.event_handler.handle_events()
 
 
 if __name__ == "__main__":
