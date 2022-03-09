@@ -16,7 +16,7 @@ def main() -> None:
     map_height = 80
 
     tileset = tcod.tileset.load_tilesheet(
-        "dejavu10x10_gs_tc.png", 32, 8, tcod.tileset.CHARMAP_TCOD
+        "Md_curses_16x16.png", 16, 16, tcod.tileset.CHARMAP_CP437
     )
 
     player = entity_factories.player.spawn()
