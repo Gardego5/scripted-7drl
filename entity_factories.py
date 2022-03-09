@@ -7,7 +7,7 @@ from entity import Actor, Item
 player = Actor(
     char="#", color=(255, 255, 255), name="Player", 
     blocks_movement=True, ai_cls=HostileEnemy, 
-    fighter=Fighter(hp=8, defence=1, power=2),
+    fighter=Fighter(hp=800, defence=1, power=5),
     inventory=Inventory(3),
 )
 
