@@ -54,22 +54,30 @@ class EventHandler (tcod.event.EventDispatch[Action]):
         return self.engine.player
 
 
+class Menu (EventHandler):
+    def __init__(self, previous: EventHandler):
+        super().__init__(previous.engine)
+        previous.engine.event_handler = self
+        self.previous = previous
+
+    def close_menu(self):
+        self.engine.event_handler = self.previous
+
+
 class MainGameEventHandler (EventHandler):
     def ev_keydown(self, event: tcod.event.KeyDown) -> Optional[Action]:
         action: Optional[Action] = None
 
-        key = event.sym
-
-        if key in keybinds.MOVE_KEYS:
+        if event.sym in keybinds.MOVE_KEYS:
             delta = keybinds.MOVE_KEYS[key]
             action = BumpAction(self.player, delta)
-        elif key in keybinds.WAIT_KEYS:
+        elif event.sym in keybinds.WAIT_KEYS:
             action = WaitAction(self.player)
-        elif key in keybinds.QUIT_KEYS:
+        elif event.sym in keybinds.QUIT_KEYS:
             action = EscapeAction(self.player)
-        elif key in keybinds.OPEN_HISTORY_VIEWER_KEYS:
-            self.engine.event_handler = HistoryViewer(self.engine)
-        elif key in keybinds.PICKUP_KEY:
+        elif event.sym in keybinds.OPEN_HISTORY_VIEWER_KEYS:
+            HistoryViewer(self)
+        elif event.sym in keybinds.PICKUP_KEY:
             action = PickupAction(self.player)
         
         return action
@@ -79,11 +87,13 @@ class GameOverEventHandler (EventHandler):
     def ev_keydown(self, event: tcod.event.KeyDown) -> None:
         if event.sym in keybinds.QUIT_KEYS:
             raise SystemExit()
+        elif event.sym in keybinds.OPEN_HISTORY_VIEWER_KEYS:
+            HistoryViewer(self)
 
-class HistoryViewer (EventHandler):
-    def __init__(self, engine: Engine):
-        super().__init__(engine)
-        self.log_length = len(engine.message_log.messages)
+class HistoryViewer (Menu):
+    def __init__(self, previous: EventHandler):
+        super().__init__(previous)
+        self.log_length = len(self.engine.message_log.messages)
         self.cursor = self.log_length - 1
     
     def on_render(self, console: Console) -> None:
@@ -114,4 +124,4 @@ class HistoryViewer (EventHandler):
         elif event.sym in keybinds.CURSOR_END_KEYS:
             self.cursor = self.log_length - 1
         else:
-            self.engine.event_handler = MainGameEventHandler(self.engine)
+            self.close_menu()
