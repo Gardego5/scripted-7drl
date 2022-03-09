@@ -34,14 +34,22 @@ def place_entities(
     dungeon: GameMap,
     max_monsters: int = None,
     min_monsters: int = 0,
+    max_items: int = None,
+    min_items: int = 0,
 ) -> None:
     if max_monsters == None: max_monsters = int(room.area/10)
     number_of_monsters = random.randint(min_monsters, max_monsters)
+    if max_items == None: max_items = int(room.area/25)
+    number_of_items = random.randint(min_items, max_items)
 
     for i in range(number_of_monsters):
         chosen_monster = random.choices(entity_factories.enemies, entity_factories.enemies_weights)[0].spawn()
         place_an_entity_randomly(room, dungeon, chosen_monster)
+    for i in range(number_of_items):
+        chosen_item = random.choices(entity_factories.items, entity_factories.items_weights)[0].spawn()
+        place_an_entity_randomly(room, dungeon, chosen_item)
 
+# TODO: Parameterize generate dungeon. 
 def generate_dungeon(
     map_width: int, map_height: int,
     engine: engine,

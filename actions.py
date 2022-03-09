@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from engine import Engine
     from entity import Entity
 
+
 class Action:
     def __init__(self, entity: Actor) -> None:
         self.entity = entity
@@ -29,13 +30,16 @@ class Action:
         """
         raise NotImplementedError()
 
+
 class EscapeAction (Action):
     def perform(self) -> None:
         raise SystemExit()
 
+
 class WaitAction (Action):
     def perform(self) -> None:
         pass
+
 
 class ActionWithDirection (Action):
     def __init__(self, entity: Actor, delta: Tuple[int, int]) -> None:
@@ -55,6 +59,7 @@ class ActionWithDirection (Action):
     def target_actor(self) -> Optional[Actor]:
         return self.engine.game_map.get_actor_at_location(self.dest)
 
+
 class MeleeAction (ActionWithDirection):
     def perform(self) -> None:
         if not self.target_actor:
@@ -73,6 +78,7 @@ class MeleeAction (ActionWithDirection):
         else:
             self.engine.message_log.add_message(f"{attack_desc} but does no damage.", attack_color)
 
+
 class MovementAction (ActionWithDirection):
     def perform(self) -> None:
         if not self.engine.game_map.in_bounds(self.dest) or \
@@ -82,9 +88,33 @@ class MovementAction (ActionWithDirection):
         
         self.entity.move(self.delta)
 
+
 class BumpAction (ActionWithDirection):
     def perform(self):
         if self.target_actor:
             return MeleeAction(self.entity, self.delta).perform()
         else:
             return MovementAction(self.entity, self.delta).perform()
+
+
+class ItemAction (Action):
+    def __init__(
+        self, 
+        entity: Actor,
+        item: Item,
+        target_pos: Optional[Tuple[int, int]] = None
+    ) -> None:
+        super().__init__(entity)
+        self.item = item
+        if not target_pos: target_pos = entity.pos
+        self.target_pos = target_pos
+    
+    @property
+    def target_actor(self) -> Optional[Actor]:
+        return self.engine.game_map.get_actor_at_location(self.target_pos)
+    
+    def perform(self) -> None:
+        try:
+            self.item.consumable.activate(self)
+        except AttributeError:
+            raise exceptions.Impossible("This item is not consumable.")
