@@ -69,7 +69,7 @@ class MainGameEventHandler (EventHandler):
         action: Optional[Action] = None
 
         if event.sym in keybinds.MOVE_KEYS:
-            delta = keybinds.MOVE_KEYS[key]
+            delta = keybinds.MOVE_KEYS[event.sym]
             action = BumpAction(self.player, delta)
         elif event.sym in keybinds.WAIT_KEYS:
             action = WaitAction(self.player)
