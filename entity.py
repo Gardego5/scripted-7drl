@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import copy
-from typing import Optional, Tuple, TypeVar, TYPE_CHECKING
+from typing import Union, Optional, Tuple, TypeVar, TYPE_CHECKING
 
 from tcod import Console
 
@@ -23,13 +23,12 @@ import calculator
 
 
 class Entity:
-    game_map: GameMap
-
+    parent: Union[GameMap, Inventory]
     # A generic object to represent players, enemies, items, etc.
     def __init__(
         self,
         *,
-        game_map: Optional[GameMap] = 0,
+        parent: Optional[Union[GameMap, Inventory]] = None,
         pos: Tuple[int, int] = (0, 0), 
         char: str = "?", color: Tuple[int, int, int] = (0, 0, 0),
         name: str = "<Unnamed>",
@@ -43,7 +42,7 @@ class Entity:
         self.name = name
         self.blocks_movement = blocks_movement
         self.render_order = render_order
-        if game_map: self.game_map = game_map
+        if parent: self.parent = parent
         if inventory: self.inventory = inventory
     
     @property
@@ -69,13 +68,19 @@ class Entity:
 
     @property
     def game_map(self) -> GameMap:
-        return self._game_map
+        if hasattr(self, "parent"):
+            if hasattr(self.parent, "entities"):
+                return self.parent
     @game_map.setter
     def game_map(self, game_map: GameMap) -> None:
-        if hasattr(self, "_game_map"):
-            self.game_map.entities.remove(self)
-        self._game_map = game_map
-        game_map.entities.add(self)
+        if hasattr(self, "parent"):
+            if hasattr(self.parent, "entities"):
+                self.parent.entities.remove(self)
+            elif hasattr(self.parent, "items"):
+                self.parent.items.remove(self)
+        self.parent = game_map
+        self.parent.entities.add(self)
+
 
     @property
     def inventory(self) -> Inventory:
@@ -108,6 +113,7 @@ class Actor (Entity):
     def __init__(
         self,
         *,
+        parent: Optional[Union[GameMap, Inventory]] = None,
         pos: Tuple[int, int] = (0, 0),
         char: str = "?",
         color: Tuple[int, int, int] = (0, 0, 0),
@@ -118,6 +124,7 @@ class Actor (Entity):
         inventory: Optional[Inventory] = None,
     ) -> None:
         super().__init__(
+            parent = parent,
             pos = pos,
             char = char,
             color = color,
@@ -149,6 +156,7 @@ class Item (Entity):
     def __init__(
         self,
         *,
+        parent: Optional[Union[GameMap, Inventory]] = None,
         pos: Tuple[int, int] = (0, 0),
         char: str = "?",
         color: Tuple[int, int, int] = (0, 0, 0),
@@ -157,6 +165,7 @@ class Item (Entity):
         inventory: Optional[Inventory] = None,
     ) -> None:
         super().__init__(
+            parent = parent,
             pos = pos,
             char = char,
             color = color,
