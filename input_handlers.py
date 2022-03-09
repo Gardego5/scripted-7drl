@@ -5,7 +5,7 @@ from typing import Optional, TYPE_CHECKING
 import tcod.event
 from tcod import Console
 
-from actions import Action, EscapeAction, BumpAction, WaitAction
+from actions import Action, EscapeAction, BumpAction, WaitAction, PickupAction
 import keybinds
 import color
 import exceptions
@@ -69,6 +69,8 @@ class MainGameEventHandler (EventHandler):
             action = EscapeAction(self.player)
         elif key in keybinds.OPEN_HISTORY_VIEWER_KEYS:
             self.engine.event_handler = HistoryViewer(self.engine)
+        elif key in keybinds.PICKUP_KEY:
+            action = PickupAction(self.player)
         
         return action
 

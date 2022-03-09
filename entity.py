@@ -81,6 +81,20 @@ class Entity:
         self.parent = game_map
         self.parent.entities.add(self)
 
+    @property
+    def container(self) -> Inventory:
+        if hasattr(self, "parent"):
+            if hasattr(self.parent, "items"):
+                return self.parent
+    @container.setter
+    def container(self, container: Inventory):
+        if hasattr(self, "parent"):
+            if hasattr(self.parent, "entities"):
+                self.parent.entities.remove(self)
+            elif hasattr(self.parent, "items"):
+                self.parent.items.remove(self)
+        self.parent = container
+        self.parent.items.append(self)
 
     @property
     def inventory(self) -> Inventory:

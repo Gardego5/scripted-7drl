@@ -8,7 +8,7 @@ import exceptions
 
 if TYPE_CHECKING:
     from engine import Engine
-    from entity import Entity
+    from entity import Entity, Actor
 
 
 class Action:
@@ -118,3 +118,26 @@ class ItemAction (Action):
             self.item.consumable.activate(self)
         except AttributeError:
             raise exceptions.Impossible("This item is not consumable.")
+
+
+class PickupAction (Action):
+    # Pickup an Item and add it to the inventory, if there is room for it.
+    def perform(self) -> None:
+        for item in self.engine.game_map.items:
+            if self.entity.pos == item.pos:
+                if hasattr(self.entity, "inventory"):
+                    if len(self.entity.inventory.items) >= self.entity.inventory.capacity:
+                        if self.entity is self.engine.player:
+                            raise exceptions.Impossible("Your inventory is full.")
+                        else:
+                            raise exceptions.Impossible(f"The {self.entity.name}'s inventory is full.")
+                    else:
+                        item.container = self.entity.inventory
+                        if self.entity is self.engine.player:
+                            self.engine.message_log.add_message(f"You picked up the {item.name}.")
+                            return
+                else:
+                    if self.entity is self.engine.player:
+                        raise exceptions.Impossible("You have no inventory.")
+                    else:
+                        raise exceptions.Impossible(f"The {self.entity.name} has no inventory.")
