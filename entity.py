@@ -23,12 +23,9 @@ import calculator
 
 
 class Entity:
-    """
-    A generic object to represent players, enemies, items, etc.
-    """
-
     game_map: GameMap
 
+    # A generic object to represent players, enemies, items, etc.
     def __init__(
         self,
         *,
@@ -52,15 +49,20 @@ class Entity:
     @property
     def x(self) -> int:
         return self._x
+    @x.setter
+    def d(self, x: int) -> None:
+        self._x = x
 
     @property
     def y(self) -> int:
         return self._y
+    @y.setter
+    def y(self, y: int) -> None:
+        self._y = y
 
     @property
     def pos(self) -> Tuple[int, int]:
         return self._x, self._y
-    
     @pos.setter
     def pos(self, new_pos) -> None:
         self._x, self._y = new_pos
@@ -68,7 +70,6 @@ class Entity:
     @property
     def game_map(self) -> GameMap:
         return self._game_map
-    
     @game_map.setter
     def game_map(self, game_map: GameMap) -> None:
         if hasattr(self, "_game_map"):
@@ -79,7 +80,6 @@ class Entity:
     @property
     def inventory(self) -> Inventory:
         return self._inventory
-
     @inventory.setter
     def inventory(self, inventory: Inventory) -> None:
         if hasattr(self, "_inventory"):
@@ -87,14 +87,15 @@ class Entity:
         self._inventory = inventory
         self._inventory.entity = self
 
-    def spawn(self: T, pos: Tuple[int, int] = (None, None), game_map: Optional[GameMap] = None) -> T:
+    def spawn(self: T, pos: Tuple[int, int] = (0, 0), game_map: Optional[GameMap] = None) -> T:
+        # Spawns a new copy of the entity at the given position in the given GameMap.
         clone = copy.deepcopy(self)
         if pos != None: clone.pos = pos
-        if game_map != None: game_map.entities.add(clone)
+        if game_map != None: clone.game_map = game_map
         return clone
 
-    # Places entity at new location. Handles moving across GameMaps.
     def place(self, pos: Tuple[int, int], game_map: Optional[GameMap] = None) -> None:
+        # Places entity at new location. Handles moving across GameMaps.
         self.pos = pos
         if game_map:
             self.game_map = game_map
@@ -132,7 +133,6 @@ class Actor (Entity):
     @property
     def fighter(self) -> Fighter:
         return self._fighter
-    
     @fighter.setter
     def fighter(self, fighter: Fighter):
         if hasattr(self, "_fighter"):
@@ -171,7 +171,6 @@ class Item (Entity):
     @property
     def consumable(self) -> Consumable:
         return self._consumable
-    
     @consumable.setter
     def consumable(self, consumable) -> None:
         if hasattr(self, "_consumable"):
@@ -181,6 +180,8 @@ class Item (Entity):
 
 
 class Camera (Entity):
+    # A helper Entity, not usually rendered, used for math to center the
+    # game map on the console.
     def __init__(self, pos: Tuple[int, int] = None, entity: Entity = None):
         super().__init__(pos=pos, char="&", color=(240, 100, 100), name="<Camera>")
         self.entity = entity
@@ -189,19 +190,25 @@ class Camera (Entity):
     def from_entity(cls, entity: Entity) -> Camera:
         return Camera(entity.pos, entity)
     
-    def follow(self, entity: Entity = None):
+    def follow(self, entity: Entity = None) -> None:
+        # Sets the Camera to follow a new Entity if provided, 
+        # and then updates the Camera's location to the location of the followed Entity.
         if entity != None: self.entity = entity
+        if not hasattr(self, "entity"): raise AttributeError("Camera is not following any Entity.")
         self.pos = self.entity.pos
 
     def console_to_game_map(self, console: Console, pos: Tuple[int, int] = (0, 0)) -> Tuple[int, int]:
+        # Takes a position relative to the console and returns it's position on the gamemap.
         zero = calculator.tuple_subtract(self.pos, (int(console.width / 2), int(console.height / 2)))
         return calculator.tuple_add(pos, zero)
     
     def game_map_to_console(self, console: Console, pos: Tuple[int, int] = (0, 0)) -> Tuple[int, int]:
+        # Takes a position relative to the game map and returns it's position on the console.
         offset = calculator.tuple_subtract(self.pos, (int(console.width / 2), int(console.height / 2)))
         return calculator.tuple_subtract(pos, offset)
 
     def render(self, console: Console) -> None:
+        # Draws a visual representation of the Camera on the console.
         x, y = self.game_map_to_console(console, self.pos)
         console.print(x + 1, y - 1, "L", fg = self.color)
         console.print(x + 2, y - 2, self.char, fg = self.color)
