@@ -10,6 +10,8 @@ black                       = 0x00, 0x00, 0x00
 #         UI Colors         # ####  ####  ####
 ui_main                     = gray_85
 ui_subdued                  = gray_50
+ui_bg_highlighted           = gray_15
+ui_bg                       = black
 welcome_text                = 0x20, 0xA0, 0xFF
 invalid                     = 0xFF, 0xFF, 0x00
 impossible                  = gray_50

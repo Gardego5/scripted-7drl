@@ -50,7 +50,7 @@ OPEN_HISTORY_VIEWER_KEYS = {
     tcod.event.K_v,
 }
 
-# Keybinds for History Viewer
+# Keybinds for Menus
 CURSOR_Y_KEYS = {
     tcod.event.K_UP: -1,
     tcod.event.K_DOWN: 1, 
@@ -64,4 +64,8 @@ CURSOR_BEGINNING_KEYS = {
 
 CURSOR_END_KEYS = {
     tcod.event.K_END,
+}
+
+CURSOR_SELECT_KEYS = {
+    tcod.event.K_RETURN,
 }

@@ -10,6 +10,7 @@ import keybinds
 import color
 import exceptions
 import graphics
+import render_functions
 
 if TYPE_CHECKING:
     from engine import Engine
@@ -131,8 +132,94 @@ class HistoryViewer (Menu):
 
 
 class InventoryEventHandler (Menu):
+    hover_zones = {
+        (18, 14): "CPU_desc",
+        (19, 14): "CPU_desc",
+        (20, 14): "CPU_desc",
+        (19, 15): "CPU",
+        (28, 12): "APU_desc",
+        (29, 12): "APU_desc",
+        (30, 12): "APU_desc",
+        (29, 13): "APU",
+        (30, 18): "GPU_desc",
+        (31, 18): "GPU_desc",
+        (32, 18): "GPU_desc",
+        (31, 19): "GPU",
+        ( 8, 13): "PSU_desc",
+        ( 9, 13): "PSU_desc",
+        (10, 13): "PSU_desc",
+        ( 7, 10): "Peripherals",
+        ( 8, 10): "Peripherals",
+        ( 9, 10): "Peripherals",
+        (10, 10): "Peripherals",
+        (11, 10): "Peripherals",
+        (12, 10): "Peripherals",
+        (13, 10): "Peripherals",
+        (14, 10): "Peripherals",
+        (15, 10): "Peripherals",
+        (16, 10): "Peripherals",
+        (17, 10): "Peripherals",
+        ( 8,  6): "P1",
+        ( 9,  6): "P1",
+        (12,  6): "P2",
+        (13,  6): "P2",
+        (16,  6): "P3",
+        (17,  6): "P3",
+        (21,  6): "P4",
+        (22,  6): "P4",
+        (25,  6): "P5",
+        (26,  6): "P5",
+        (29,  6): "P6",
+        (30,  6): "P6",
+        (22, 21): "Data",
+        (23, 21): "Data",
+        (24, 21): "Data",
+        (25, 21): "Data",
+        (10, 24): "D1",
+        (13, 24): "D2",
+        (16, 24): "D3",
+        (22, 24): "D4",
+        (25, 24): "D5",
+        (28, 24): "D6",
+    }
+
+    def __init__(self, previous: EventHandler):
+        super().__init__(previous)
+        self.cursor = 0
+        self.window = "Inventory"
+
     def on_render(self, console: Console) -> None:
-        console.rgb[:29,:21] = graphics.hardware
+        player = self.engine.player
+
+        # Draw Normal UI Elements
+        render_functions.render_health_bar(console, player.fighter.hp, player.fighter.max_hp)
+
+        # Draw Hardware Screen
+        console.rgb[5:34,5:26] = graphics.hardware
+
+        # Draw Inventory Screen
+        if self.window == "Inventory":
+            self.cursor = max(0, min(self.cursor, len(player.inventory.items)))
+        console.draw_frame(2, 30, 35, 18, title="Inventory")
+        if self.window == "Inventory":
+            self.engine.inventory_window.render(console, 3, 31, 33, 16, cursor = self.cursor)
+        else: 
+            self.engine.inventory_window.render(console, 3, 31, 33, 16)
+
+        # Draw Software Screen
+        console.draw_frame(38, 2, 24, 46, title="Software")
+
+        # Draw Help Screen
+        # TODO: Draw Help Screen
 
     def ev_keydown(self, event: tcod.event.KeyDown) -> None:
-        self.close_menu()
+        if event.sym in keybinds.CURSOR_Y_KEYS:
+            self.cursor += keybinds.CURSOR_Y_KEYS[event.sym]
+        elif event.sym in keybinds.QUIT_KEYS:
+            self.close_menu()
+
+    def ev_mousemotion(self, event: tcod.event.MouseMotion) -> None:
+        try:
+            print(self.hover_zones[event.tile])
+        except KeyError:
+            print(event.tile)

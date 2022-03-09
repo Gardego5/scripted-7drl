@@ -31,6 +31,13 @@ health_potion = Item(
     consumable=HealingConsumable(amount=7)
 )
 
+bag = Item(
+    char=chr(0xC5), color=(190, 150, 230), name="Bag",
+    inventory = Inventory(3),
+)
+
+health_potion.spawn().container = bag.inventory
+
 enemies = [
     scientist,
     janitor,
@@ -42,7 +49,9 @@ enemies_weights = [
 
 items = [
     health_potion,
+    bag,
 ]
 items_weights = [
     1,
+    2,
 ]

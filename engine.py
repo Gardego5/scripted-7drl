@@ -12,6 +12,7 @@ from game_map import GameMap
 from input_handlers import MainGameEventHandler
 from message_log import MessageLog
 from render_functions import render_health_bar, render_names_at_mouse_location
+from inventory_window import InventoryWindow
 import exceptions
 
 if TYPE_CHECKING:
@@ -30,6 +31,7 @@ class Engine:
         self.mouse_location = (0, 0)
         self.player = player
         self.message_log = MessageLog()
+        self.inventory_window = InventoryWindow(player.inventory)
         self.camera = Camera.from_entity(player)
 
     def handle_enemy_turns(self) -> None:

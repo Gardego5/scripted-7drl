@@ -189,7 +189,7 @@ class Item (Entity):
             inventory = inventory,
         )
 
-        self.consumable = consumable
+        if consumable: self.consumable = consumable
     
     @property
     def consumable(self) -> Consumable:
