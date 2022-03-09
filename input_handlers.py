@@ -9,6 +9,7 @@ from actions import Action, EscapeAction, BumpAction, WaitAction, PickupAction
 import keybinds
 import color
 import exceptions
+import graphics
 
 if TYPE_CHECKING:
     from engine import Engine
@@ -79,6 +80,8 @@ class MainGameEventHandler (EventHandler):
             HistoryViewer(self)
         elif event.sym in keybinds.PICKUP_KEY:
             action = PickupAction(self.player)
+        elif event.sym in keybinds.INVENTORY_KEY:
+            InventoryEventHandler(self)
         
         return action
 
@@ -125,3 +128,11 @@ class HistoryViewer (Menu):
             self.cursor = self.log_length - 1
         else:
             self.close_menu()
+
+
+class InventoryEventHandler (Menu):
+    def on_render(self, console: Console) -> None:
+        console.rgb[:29,:21] = graphics.hardware
+
+    def ev_keydown(self, event: tcod.event.KeyDown) -> None:
+        self.close_menu()

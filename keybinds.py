@@ -37,6 +37,10 @@ PICKUP_KEY = {
     tcod.event.K_g,
 }
 
+INVENTORY_KEY = {
+    tcod.event.K_i,
+}
+
 QUIT_KEYS = {
     tcod.event.K_ESCAPE,
     tcod.event.K_q,
