@@ -203,7 +203,6 @@ class InventoryEventHandler (Menu):
         console.rgb[5:34,5:26] = graphics.hardware
 
         # Draw Inventory Screen
-        console.draw_frame(2, 30, 35, 18, title="Inventory")
         if self.window == "Inventory":
             self.inventory_window.render(console, self.cursor)
         else: 

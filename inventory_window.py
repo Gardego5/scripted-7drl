@@ -56,6 +56,8 @@ class InventoryWindow:
 
         displayed_listings, selected = self.render_mode
 
+        console.draw_frame(self.x - 1, self.y - 1, self.width + 2, self.height + 2, title="Inventory")
+
         for i, (listing, item) in enumerate(displayed_listings):
             if i == selected:
                 console.print(self.x, self.y + i, listing, fg = item.color, bg = color.ui_bg_highlighted)
