@@ -76,6 +76,16 @@ class Entity:
             return self.parent.entity.ancestor
 
     @property
+    def belongs_to_player(self) -> bool:
+        if hasattr(self.parent, "entities"):
+            if self is self.parent.player:
+                return True
+            else:
+                return False
+        else:
+            return self.parent.entity.belongs_to_player
+
+    @property
     def game_map(self) -> GameMap:
         if hasattr(self, "parent"):
             if hasattr(self.parent, "entities"):
@@ -127,6 +137,9 @@ class Entity:
             self.game_map = game_map
         else:
             self.game_map = self.ancestor
+
+    def distance(self, pos) -> float:
+        return calculator.tuple_distance(pos, self.pos)
 
     def move(self, delta: Tuple[int, int]) -> None:
         self.pos = calculator.tuple_add(self.pos, delta)

@@ -29,11 +29,15 @@ class EventHandler (tcod.event.EventDispatch[Action]):
         if action is None:
             return False
 
+        action.perform()
+
+        '''
         try:
             action.perform()
         except exceptions.Impossible as exc:
             self.engine.message_log.add_message(exc.args[0], color.impossible)
             return False  # Skip enemy turn on exceptions
+        '''
 
         self.engine.handle_enemy_turns()
 

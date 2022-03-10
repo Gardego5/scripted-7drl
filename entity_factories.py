@@ -1,10 +1,12 @@
 from components.ai import HostileEnemy
 from components.fighter import Fighter
-from components.consumable import HealingConsumable
+from components import consumable
 from components.inventory import Inventory
 from entity import Actor, Item, Player
 import dev
+import color
 
+# Player
 player = Player(
     fighter=Fighter(hp=800, defence=1, power=5),
     inventory=Inventory(20),
@@ -31,7 +33,12 @@ janitor = Actor(
 # Items
 health_potion = Item(
     char="!", color=(127, 0, 255), name="Health Potion",
-    consumable=HealingConsumable(amount=7)
+    consumable = consumable.HealingConsumable(amount=7)
+)
+
+lightning_scroll = Item(
+    char="~", color=color.yellow, name="Lightning Scroll",
+    consumable=consumable.LightningDamageConsumable(damage=20, maximum_range=5)
 )
 
 bag = Item(
@@ -39,27 +46,16 @@ bag = Item(
     inventory = Inventory(3),
 )
 
-health_potion.spawn().container = bag.inventory
+for i in range(3): health_potion.spawn().container = bag.inventory
+bag.spawn().container = player.inventory
 
-bagged_bag = bag.spawn()
-bag.spawn().container = bagged_bag.inventory
+enemies = {
+    0.3: scientist,
+    0.7: janitor,
+}
 
-for i in range(6): bagged_bag.spawn().container = player.inventory
-
-enemies = [
-    scientist,
-    janitor,
-]
-enemies_weights = [
-    0.3,
-    0.7,
-]
-
-items = [
-    health_potion,
-    bag,
-]
-items_weights = [
-    1,
-    2,
-]
+items = {
+    0.6: health_potion,
+    0.3: bag,
+    1.2: lightning_scroll,
+}

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Optional, TYPE_CHECKING
 
-import actions
+from actions import ItemAction
 import color
 from components.base_component import BaseComponent
 from exceptions import Impossible
@@ -20,7 +20,7 @@ class Consumable (BaseComponent):
     def uses(self) -> int:
         return self._uses
     
-    def use(self) -> None:
+    def consume(self) -> None:
         self._uses -= 1
         if self._uses < 1 and self.rechargeable == False:
             self.entity.container.delete(self.entity)
@@ -41,7 +41,7 @@ class HealingConsumable (Consumable):
         super().__init__(uses)
         self.amount = amount
 
-    def activate(self, action: actions.ItemAction) -> None:
+    def activate(self, action: ItemAction) -> None:
         if self.uses > 0:
             consumer = action.entity
             amount_recovered = consumer.fighter.heal(self.amount)
@@ -59,6 +59,39 @@ class HealingConsumable (Consumable):
                     f"The {consumer.name} consumes the {action.item.name}, and recovers {amount_recovered} HP!",
                     color.health_recovered,
                 )
-            self.use()
+            self.consume()
         else:
             raise Impossible("Your health is already full")
+
+
+class LightningDamageConsumable (Consumable):
+    def __init__(
+        self, 
+        damage: int,
+        maximum_range: int,
+        *, 
+        uses: int = 1,
+    ) -> None:
+        super().__init__(uses)
+        self.damage = damage
+        self.maximum_range = maximum_range
+    
+    def activate(self, action: ItemAction):
+        consumer = action.entity
+        target = None
+        closest_distance = self.maximum_range + 1.0
+
+        for actor in self.engine.game_map.actors:
+            if actor is not consumer and action.engine.game_map.visible[actor.pos]:
+                distance = consumer.distance(actor.pos)
+
+                if distance < closest_distance:
+                    target = actor
+                    closest_distance = distance
+
+        if target:
+            self.engine.message_log.add_message(f"A lightning bolt strikes the {target.name} with a loud thunderous crack, dealing {self.damage} damage!")
+            target.fighter.take_damage(self.damage)
+            self.consume()
+        else:
+            raise Impossible("No enemy is close enough to strike")

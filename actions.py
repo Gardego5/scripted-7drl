@@ -109,10 +109,13 @@ class ItemAction (Action):
         return self.engine.game_map.get_actor_at_location(self.target_pos)
     
     def perform(self) -> None:
+        self.item.consumable.activate(self)
+        '''
         try:
             self.item.consumable.activate(self)
         except AttributeError as exc:
             raise exceptions.Impossible("This item is not consumable.")
+        '''
 
 
 class PickupAction (Action):

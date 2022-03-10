@@ -43,10 +43,10 @@ def place_entities(
     number_of_items = random.randint(min_items, max_items)
 
     for i in range(number_of_monsters):
-        chosen_monster = random.choices(entity_factories.enemies, entity_factories.enemies_weights)[0].spawn()
+        chosen_monster = random.choices(list(entity_factories.enemies.values()), list(entity_factories.enemies.keys()))[0].spawn()
         place_an_entity_randomly(room, dungeon, chosen_monster)
     for i in range(number_of_items):
-        chosen_item = random.choices(entity_factories.items, entity_factories.items_weights)[0].spawn()
+        chosen_item = random.choices(list(entity_factories.items.values()), list(entity_factories.items.keys()))[0].spawn()
         place_an_entity_randomly(room, dungeon, chosen_item)
 
 # TODO: Parameterize generate dungeon. 
