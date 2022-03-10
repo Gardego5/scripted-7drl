@@ -52,7 +52,7 @@ class EventHandler (tcod.event.EventDispatch[Action]):
         raise SystemExit()
     
     def on_render(self, console: Console) -> None:
-        self.engine.camera.follow()  # Update the camera's position
+        self.engine.camera.follow(console)  # Update the camera's position
         self.engine.render(console)  # Render everything
 
     @property
@@ -66,8 +66,16 @@ class Menu (EventHandler):
         previous.engine.event_handler = self
         self.previous = previous
 
-    def close_menu(self):
+    def close_menu(self) -> None:
         self.engine.event_handler = self.previous
+    
+    @property
+    def main_game(self) -> MainGameEventHandler:
+        # Returns the main game event handler from any menu.
+        if isinstance(self.previous, MainGameEventHandler):
+            return self.previous
+        else:
+            return self.previous.main_game
 
 
 class MainGameEventHandler (EventHandler):
@@ -87,6 +95,8 @@ class MainGameEventHandler (EventHandler):
             action = PickupAction(self.player)
         elif event.sym in keybinds.INVENTORY_KEY:
             InventoryEventHandler(self)
+        elif event.sym in keybinds.LOOK_VIEWER_KEY:
+            LookHandler(self)
         
         return action
 
@@ -224,3 +234,42 @@ class InventoryEventHandler (Menu):
                 # If you didn't click on a selectable item, but within a window, select the window,
                 # but keep the selected item of that window the same.
                 self.cursor, self.window = i_window.cursor, i_window.title
+
+
+class SelectHandler (Menu):
+    def __init__(self, previous: EventHandler) -> None:
+        super().__init__(previous)
+        self.engine.mouse_location = self.engine.camera.game_map_to_console(pos = self.engine.player.pos)
+    
+    def on_render(self, console: tcod.Console) -> None:
+        self.main_game.on_render(console)
+        console.rgb["bg"][self.engine.mouse_location] = color.white
+        console.rgb["fg"][self.engine.mouse_location] = color.black
+    
+    def ev_keydown(self, event: tcod.event.KeyDown) -> Optional[Action]:
+        if event.sym in keybinds.MOVE_KEYS:
+            modifier = 1
+            for mod in keybinds.MOVE_MODIFIER_KEYS:
+                if mod == event.mod:
+                    modifier *= keybinds.MOVE_MODIFIER_KEYS[mod]
+        
+            x, y = self.engine.mouse_location
+            dx, dy = keybinds.MOVE_KEYS[event.sym]
+            x += dx * modifier
+            y += dy * modifier
+            x = max(0, min(x, self.engine.game_map.width - 1))
+            y = max(0, min(y, self.engine.game_map.height - 1))
+            self.engine.mouse_location = x, y
+            return None
+        elif event.sym in keybinds.CURSOR_SELECT_KEYS:
+            return self.on_index_selected(self.engine.mouse_location)
+        elif event.sym in keybinds.QUIT_KEYS:
+            self.close_menu()
+
+    def on_index_selected(self, pos: Tuple[int, int]) -> Optional[Action]:
+        raise NotImplementedError()
+
+
+class LookHandler (SelectHandler):
+    def on_index_selected(self, pos: Tuple[int, int]) -> None:
+        self.close_menu()

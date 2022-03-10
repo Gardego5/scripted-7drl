@@ -251,33 +251,47 @@ class Item (Entity):
 
 class Camera (Entity):
     # A helper Entity, not usually rendered, used for math to center the
-    # game map on the console.
-    def __init__(self, pos: Tuple[int, int] = None, entity: Entity = None):
+    # game map on the console. Keeps track of its current console and updates
+    # its console whenever it is passed a new one.
+    def __init__(self, pos: Tuple[int, int] = None, entity: Optional[Entity] = None, console: Optional[Console] = None):
         super().__init__(pos=pos, char="&", color=(240, 100, 100), name="<Camera>")
         self.entity = entity
+        self.console = console
 
     @classmethod
     def from_entity(cls, entity: Entity) -> Camera:
         return Camera(entity.pos, entity)
-    
-    def follow(self, entity: Entity = None) -> None:
+
+    def follow(self, console: Optional[console] = None, entity: Entity = None) -> None:
+        if not console: console = self.console
+        else: self.console = console
+
         # Sets the Camera to follow a new Entity if provided, 
         # and then updates the Camera's location to the location of the followed Entity.
-        if entity != None: self.entity = entity
+        if entity: self.entity = entity
         if not hasattr(self, "entity"): raise AttributeError("Camera is not following any Entity.")
         self.pos = self.entity.pos
 
-    def console_to_game_map(self, console: Console, pos: Tuple[int, int] = (0, 0)) -> Tuple[int, int]:
+    def console_to_game_map(self, console: Optional[Console] = None, pos: Tuple[int, int] = (0, 0)) -> Tuple[int, int]:
+        if not console: console = self.console
+        else: self.console = console
+
         # Takes a position relative to the console and returns it's position on the gamemap.
         zero = calculator.tuple_subtract(self.pos, (int(console.width / 2), int(console.height / 2)))
         return calculator.tuple_add(pos, zero)
     
-    def game_map_to_console(self, console: Console, pos: Tuple[int, int] = (0, 0)) -> Tuple[int, int]:
+    def game_map_to_console(self, console: Optional[Console] = None, pos: Tuple[int, int] = (0, 0)) -> Tuple[int, int]:
+        if not console: console = self.console
+        else: self.console = console
+
         # Takes a position relative to the game map and returns it's position on the console.
         offset = calculator.tuple_subtract(self.pos, (int(console.width / 2), int(console.height / 2)))
         return calculator.tuple_subtract(pos, offset)
 
-    def render(self, console: Console) -> None:
+    def render(self, console: Optional[Console] = None) -> None:
+        if not console: console = self.console
+        else: self.console = console
+
         # Draws a visual representation of the Camera on the console.
         x, y = self.game_map_to_console(console, self.pos)
         console.print(x + 1, y - 1, "L", fg = self.color)

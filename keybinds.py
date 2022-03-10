@@ -17,14 +17,14 @@ MOVE_KEYS = {
     tcod.event.K_KP_8: (0, -1),
     tcod.event.K_KP_9: (1, -1),
     # Vi keys.
-    tcod.event.K_h: (-1, 0),
-    tcod.event.K_j: (0, 1),
-    tcod.event.K_k: (0, -1),
-    tcod.event.K_l: (1, 0),
-    tcod.event.K_y: (-1, -1),
-    tcod.event.K_u: (1, -1),
-    tcod.event.K_b: (-1, 1),
-    tcod.event.K_n: (1, 1),
+    # tcod.event.K_h: (-1, 0),
+    # tcod.event.K_j: (0, 1),
+    # tcod.event.K_k: (0, -1),
+    # tcod.event.K_l: (1, 0),
+    # tcod.event.K_y: (-1, -1),
+    # tcod.event.K_u: (1, -1),
+    # tcod.event.K_b: (-1, 1),
+    # tcod.event.K_n: (1, 1),
 }
 
 WAIT_KEYS = {
@@ -36,6 +36,7 @@ WAIT_KEYS = {
 PICKUP_KEY = { tcod.event.K_g }
 INVENTORY_KEY = { tcod.event.K_i }
 HISTORY_VIEWER_KEYS = { tcod.event.K_v }
+LOOK_VIEWER_KEY = { tcod.event.K_l }
 
 QUIT_KEYS = {
     tcod.event.K_ESCAPE,
@@ -49,6 +50,15 @@ CURSOR_Y_KEYS = {
     tcod.event.K_DOWN: 1, 
     tcod.event.K_PAGEUP: -10,
     tcod.event.K_PAGEDOWN: 10,
+}
+
+MOVE_MODIFIER_KEYS = {
+    tcod.event.KMOD_LSHIFT: 5,
+    tcod.event.KMOD_RSHIFT: 5,
+    tcod.event.KMOD_LCTRL: 10,
+    tcod.event.KMOD_RCTRL: 10,
+    tcod.event.KMOD_LALT: 20,
+    tcod.event.KMOD_RALT: 20,
 }
 
 CURSOR_BEGINNING_KEYS = { tcod.event.K_HOME }
