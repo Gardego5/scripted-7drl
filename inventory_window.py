@@ -22,18 +22,38 @@ class InventoryWindow:
                 formated_listings.extend(InventoryWindow.format_listing(sub_item, layer = layer + 1))
 
         return formated_listings
-    
+
+    @property
+    def listings(self) -> Iterable[Tuple[str, Item]]:
+        listings = []
+        for item in self.inventory.items:
+            listings.extend(self.format_listing(item))
+        return listings
+
     def render(
         self, console: Console, x: int, y: int, width: int, height: int, cursor: Optional[int] = None,
     ) -> None:
-        listings = []
-
-        for item in self.inventory.items:
-            listings.extend(self.format_listing(item))
-
-        if len(listings) < height:
-            for i, (listing, item) in enumerate(listings):
-                if cursor == i:
+        if len(self.listings) < height or not cursor:
+            for i, (listing, item) in enumerate(self.listings[:min(len(self.listings), height)]):
+                if i == cursor:
+                    console.print(x, y + i, listing, fg = item.color, bg = color.ui_bg_highlighted)
+                else:
+                    console.print(x, y + i, listing, fg = item.color, bg = color.ui_bg)
+        elif cursor < int(height / 2):
+            for i, (listing, item) in enumerate(self.listings[:min(len(self.listings), height)]):
+                if i == cursor:
+                    console.print(x, y + i, listing, fg = item.color, bg = color.ui_bg_highlighted)
+                else:
+                    console.print(x, y + i, listing, fg = item.color, bg = color.ui_bg)
+        elif cursor > len(self.listings) - int(height / 2):
+            for i, (listing, item) in enumerate(self.listings[-min(len(self.listings), height):]):
+                if i == cursor + height - len(self.listings):
+                    console.print(x, y + i, listing, fg = item.color, bg = color.ui_bg_highlighted)
+                else:
+                    console.print(x, y + i, listing, fg = item.color, bg = color.ui_bg)
+        else:
+            for i, (listing, item) in enumerate(self.listings[cursor - int(height / 2):cursor + int(height / 2)]):
+                if i == int(height / 2):
                     console.print(x, y + i, listing, fg = item.color, bg = color.ui_bg_highlighted)
                 else:
                     console.print(x, y + i, listing, fg = item.color, bg = color.ui_bg)

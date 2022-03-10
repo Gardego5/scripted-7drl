@@ -8,7 +8,7 @@ player = Actor(
     char="#", color=(255, 255, 255), name="Player", 
     blocks_movement=True, ai_cls=HostileEnemy, 
     fighter=Fighter(hp=800, defence=1, power=5),
-    inventory=Inventory(3),
+    inventory=Inventory(20),
 )
 
 # Enemies
@@ -37,6 +37,11 @@ bag = Item(
 )
 
 health_potion.spawn().container = bag.inventory
+
+bagged_bag = bag.spawn()
+bag.spawn().container = bagged_bag.inventory
+
+for i in range(6): bagged_bag.spawn().container = player.inventory
 
 enemies = [
     scientist,

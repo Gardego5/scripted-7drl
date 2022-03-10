@@ -15,6 +15,7 @@ import render_functions
 if TYPE_CHECKING:
     from engine import Engine
     from entity import Actor
+    from inventory_window import InventoryWindow
 
 class EventHandler (tcod.event.EventDispatch[Action]):
     def __init__(self, engine: Engine):
@@ -188,6 +189,10 @@ class InventoryEventHandler (Menu):
         self.cursor = 0
         self.window = "Inventory"
 
+    @property
+    def inventory_window(self) -> InventoryWindow:
+        return self.engine.inventory_window
+
     def on_render(self, console: Console) -> None:
         player = self.engine.player
 
@@ -198,13 +203,11 @@ class InventoryEventHandler (Menu):
         console.rgb[5:34,5:26] = graphics.hardware
 
         # Draw Inventory Screen
-        if self.window == "Inventory":
-            self.cursor = max(0, min(self.cursor, len(player.inventory.items)))
         console.draw_frame(2, 30, 35, 18, title="Inventory")
         if self.window == "Inventory":
-            self.engine.inventory_window.render(console, 3, 31, 33, 16, cursor = self.cursor)
+            self.inventory_window.render(console, 3, 31, 33, 16, cursor = self.cursor)
         else: 
-            self.engine.inventory_window.render(console, 3, 31, 33, 16)
+            self.inventory_window.render(console, 3, 31, 33, 16)
 
         # Draw Software Screen
         console.draw_frame(38, 2, 24, 46, title="Software")
@@ -214,7 +217,13 @@ class InventoryEventHandler (Menu):
 
     def ev_keydown(self, event: tcod.event.KeyDown) -> None:
         if event.sym in keybinds.CURSOR_Y_KEYS:
-            self.cursor += keybinds.CURSOR_Y_KEYS[event.sym]
+            adjust = keybinds.CURSOR_Y_KEYS[event.sym]
+            if adjust < 0 and self.cursor == 0:
+                self.cursor = len(self.inventory_window.listings) - 1
+            elif adjust > 0 and self.cursor == len(self.inventory_window.listings) - 1:
+                self.cursor = 0
+            else:
+                self.cursor = max(0, min(self.cursor + adjust, len(self.inventory_window.listings) - 1))
         elif event.sym in keybinds.QUIT_KEYS:
             self.close_menu()
 
