@@ -2,11 +2,9 @@ from components.ai import HostileEnemy
 from components.fighter import Fighter
 from components.consumable import HealingConsumable
 from components.inventory import Inventory
-from entity import Actor, Item
+from entity import Actor, Item, Player
 
-player = Actor(
-    char="#", color=(255, 255, 255), name="Player", 
-    blocks_movement=True, ai_cls=HostileEnemy, 
+player = Player(
     fighter=Fighter(hp=800, defence=1, power=5),
     inventory=Inventory(20),
 )

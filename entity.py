@@ -6,6 +6,7 @@ from typing import Union, Optional, Tuple, TypeVar, TYPE_CHECKING
 from tcod import Console
 
 from render_order import RenderOrder
+from components.ai import HostileEnemy
 import calculator
 
 if TYPE_CHECKING:
@@ -164,6 +165,36 @@ class Actor (Entity):
     @property
     def is_alive(self) -> bool:
         return bool(self.ai)
+
+
+class Player (Actor):
+    hardware: Inventory
+    software: Inventory
+
+    def __init__(
+        self,
+        *,
+        parent: Optional[Union[GameMap, Inventory]] = None,
+        pos: Tuple[int, int] = (0, 0),
+        fighter: Fighter,
+        inventory: Optional[Inventory] = None,
+        hardware: Optional[Inventory] = None,
+        software: Optional[Inventory] = None
+    ) -> None:
+        super().__init__(
+            parent = parent,
+            pos = pos,
+            char = "#",
+            color = (255, 255, 255),
+            name = "Player",
+            blocks_movement = True,
+            ai_cls = HostileEnemy,
+            inventory = inventory,
+            fighter = fighter,
+        )
+        
+        if hardware: self.hardware = hardware
+        if software: self.software = software
 
 
 class Item (Entity):
