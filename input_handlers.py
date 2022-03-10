@@ -181,6 +181,7 @@ class InventoryEventHandler (Menu):
         console.draw_frame(64, 27, 14, 21, title="Info")
 
     def ev_keydown(self, event: tcod.event.KeyDown) -> None:
+        # Move the cursor in the selected window, but don't make it out of bounds of the window's listings.
         if event.sym in keybinds.CURSOR_Y_KEYS:
             adjust = keybinds.CURSOR_Y_KEYS[event.sym]
             if adjust < 0 and self.cursor == 0:
@@ -195,9 +196,13 @@ class InventoryEventHandler (Menu):
     def ev_mousebuttondown(self, event: tcod.event.MouseButtonDown) -> None:
         for i_window in [self.hardware_window, self.inventory_window, self.software_window]:
             try:
+                # If you clicked on a selectable item, then select that item in that window.
                 item, cursor = i_window.hover_zones(self.engine.mouse_location)
                 self.cursor, self.window = cursor, i_window.title
             except exceptions.OutOfWindow:
+                # Do nothing if you didn't click in a window.
                 pass
             except IndexError:
+                # If you didn't click on a selectable item, but within a window, select the window,
+                # but keep the selected item of that window the same.
                 self.cursor, self.window = i_window.cursor, i_window.title
