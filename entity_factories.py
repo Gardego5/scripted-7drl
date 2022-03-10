@@ -3,11 +3,16 @@ from components.fighter import Fighter
 from components.consumable import HealingConsumable
 from components.inventory import Inventory
 from entity import Actor, Item, Player
+import dev
 
 player = Player(
     fighter=Fighter(hp=800, defence=1, power=5),
     inventory=Inventory(20),
 )
+for device in dev.hardware:
+    device.container = player.hardware
+for device in dev.software:
+    device.container = player.software
 
 # Enemies
 scientist = Actor(

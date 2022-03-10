@@ -31,7 +31,6 @@ class Engine:
         self.mouse_location = (0, 0)
         self.player = player
         self.message_log = MessageLog()
-        self.inventory_window = InventoryWindow(player.inventory)
         self.camera = Camera.from_entity(player)
 
     def handle_enemy_turns(self) -> None:

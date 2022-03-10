@@ -6,16 +6,15 @@ import tcod.event
 from tcod import Console
 
 from actions import Action, EscapeAction, BumpAction, WaitAction, PickupAction
+from inventory_window import HardwareWindow, InventoryWindow, SoftwareWindow
 import keybinds
 import color
 import exceptions
-import graphics
 import render_functions
 
 if TYPE_CHECKING:
     from engine import Engine
     from entity import Actor
-    from inventory_window import InventoryWindow
 
 class EventHandler (tcod.event.EventDispatch[Action]):
     def __init__(self, engine: Engine):
@@ -133,65 +132,22 @@ class HistoryViewer (Menu):
 
 
 class InventoryEventHandler (Menu):
-    hover_zones = {
-        (18, 14): "CPU_desc",
-        (19, 14): "CPU_desc",
-        (20, 14): "CPU_desc",
-        (19, 15): "CPU",
-        (28, 12): "APU_desc",
-        (29, 12): "APU_desc",
-        (30, 12): "APU_desc",
-        (29, 13): "APU",
-        (30, 18): "GPU_desc",
-        (31, 18): "GPU_desc",
-        (32, 18): "GPU_desc",
-        (31, 19): "GPU",
-        ( 8, 13): "PSU_desc",
-        ( 9, 13): "PSU_desc",
-        (10, 13): "PSU_desc",
-        ( 7, 10): "Peripherals",
-        ( 8, 10): "Peripherals",
-        ( 9, 10): "Peripherals",
-        (10, 10): "Peripherals",
-        (11, 10): "Peripherals",
-        (12, 10): "Peripherals",
-        (13, 10): "Peripherals",
-        (14, 10): "Peripherals",
-        (15, 10): "Peripherals",
-        (16, 10): "Peripherals",
-        (17, 10): "Peripherals",
-        ( 8,  6): "P1",
-        ( 9,  6): "P1",
-        (12,  6): "P2",
-        (13,  6): "P2",
-        (16,  6): "P3",
-        (17,  6): "P3",
-        (21,  6): "P4",
-        (22,  6): "P4",
-        (25,  6): "P5",
-        (26,  6): "P5",
-        (29,  6): "P6",
-        (30,  6): "P6",
-        (22, 21): "Data",
-        (23, 21): "Data",
-        (24, 21): "Data",
-        (25, 21): "Data",
-        (10, 24): "D1",
-        (13, 24): "D2",
-        (16, 24): "D3",
-        (22, 24): "D4",
-        (25, 24): "D5",
-        (28, 24): "D6",
-    }
-
     def __init__(self, previous: EventHandler):
         super().__init__(previous)
         self.cursor = 0
         self.window = "Inventory"
+        self.hardware_window = HardwareWindow(self.player.hardware)
+        self.inventory_window = InventoryWindow(self.player.inventory)
+        self.software_window = SoftwareWindow(self.player.software)
 
     @property
-    def inventory_window(self) -> InventoryWindow:
-        return self.engine.inventory_window
+    def active_window(self):
+        windows = {
+            "Hardware": self.hardware_window,
+            "Inventory": self.inventory_window,
+            "Software": self.software_window,
+        }
+        return windows[self.window]
 
     def on_render(self, console: Console) -> None:
         player = self.engine.player
@@ -200,7 +156,10 @@ class InventoryEventHandler (Menu):
         render_functions.render_health_bar(console, player.fighter.hp, player.fighter.max_hp)
 
         # Draw Hardware Screen
-        console.rgb[5:34,5:26] = graphics.hardware
+        if self.window == "Hardware":
+            self.hardware_window.render(console, self.cursor)
+        else: 
+            self.hardware_window.render(console)
 
         # Draw Inventory Screen
         if self.window == "Inventory":
@@ -209,26 +168,35 @@ class InventoryEventHandler (Menu):
             self.inventory_window.render(console)
 
         # Draw Software Screen
-        console.draw_frame(38, 2, 25, 36, title="Software")
+        if self.window == "Software":
+            self.software_window.render(console, self.cursor)
+        else: 
+            self.software_window.render(console)
 
-        # Draw Help Screen
+        # Draw Description Screen
+        console.draw_frame(38, 39, 25, 9, title="Description")
+
+        # Draw Info Screen
         console.draw_frame(64, 27, 14, 21, title="Info")
 
     def ev_keydown(self, event: tcod.event.KeyDown) -> None:
         if event.sym in keybinds.CURSOR_Y_KEYS:
             adjust = keybinds.CURSOR_Y_KEYS[event.sym]
             if adjust < 0 and self.cursor == 0:
-                self.cursor = len(self.inventory_window.listings) - 1
-            elif adjust > 0 and self.cursor == len(self.inventory_window.listings) - 1:
+                self.cursor = len(self.active_window.listings) - 1
+            elif adjust > 0 and self.cursor == len(self.active_window.listings) - 1:
                 self.cursor = 0
             else:
-                self.cursor = max(0, min(self.cursor + adjust, len(self.inventory_window.listings) - 1))
+                self.cursor = max(0, min(self.cursor + adjust, len(self.active_window.listings) - 1))
         elif event.sym in keybinds.QUIT_KEYS:
             self.close_menu()
 
     def ev_mousebuttondown(self, event: tcod.event.MouseButtonDown) -> None:
-        for i_window in [self.inventory_window]:
+        for i_window in [self.hardware_window, self.inventory_window, self.software_window]:
             try:
-                item, self.cursor = i_window.hover_zones(self.engine.mouse_location)
+                item, cursor = i_window.hover_zones(self.engine.mouse_location)
+                self.cursor, self.window = cursor, i_window.title
             except exceptions.OutOfWindow:
                 pass
+            except IndexError:
+                self.cursor, self.window = i_window.cursor, i_window.title

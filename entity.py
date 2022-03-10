@@ -7,13 +7,13 @@ from tcod import Console
 
 from render_order import RenderOrder
 from components.ai import HostileEnemy
+from components.inventory import Inventory
 import calculator
 
 if TYPE_CHECKING:
     from components.ai import BaseAI
     from components.fighter import Fighter
     from components.consumable import Consumable
-    from components.inventory import Inventory
     from game_map import GameMap
 
 T = TypeVar("T", bound="Entity")
@@ -168,9 +168,6 @@ class Actor (Entity):
 
 
 class Player (Actor):
-    hardware: Inventory
-    software: Inventory
-
     def __init__(
         self,
         *,
@@ -178,8 +175,6 @@ class Player (Actor):
         pos: Tuple[int, int] = (0, 0),
         fighter: Fighter,
         inventory: Optional[Inventory] = None,
-        hardware: Optional[Inventory] = None,
-        software: Optional[Inventory] = None
     ) -> None:
         super().__init__(
             parent = parent,
@@ -193,8 +188,8 @@ class Player (Actor):
             fighter = fighter,
         )
         
-        if hardware: self.hardware = hardware
-        if software: self.software = software
+        self.hardware = Inventory(16)
+        self.software = Inventory(3)
 
 
 class Item (Entity):
