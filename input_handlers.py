@@ -175,6 +175,7 @@ class InventoryEventHandler (Menu):
 
         # Draw Description Screen
         console.draw_frame(38, 39, 25, 9, title="Description")
+        console.print_box(39, 40, 23, 7, self.active_window.selected_listing[1].description, fg=color.ui_main)
 
         # Draw Info Screen
         console.draw_frame(64, 27, 14, 21, title="Info")

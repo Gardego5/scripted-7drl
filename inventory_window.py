@@ -32,6 +32,10 @@ class InventoryWindow:
         return formated_listings
 
     @property
+    def selected_listing(self) -> Tuple[str, Item]:
+        return self.listings[self.cursor]
+
+    @property
     def listings(self) -> Iterable[Tuple[str, Item]]:
         listings = []
         for item in self.inventory.items:
@@ -83,6 +87,11 @@ class InventoryWindow:
 class SoftwareWindow (InventoryWindow):
     x, y, width, height = 39, 3, 23, 34
     title = "Software"
+
+
+class HardwareWindow (InventoryWindow):
+    x, y, width, height = 5, 5, 29, 21
+    title = "Hardware"
     zones = {
         (18, 14): "CPU_desc",
         (19, 14): "CPU_desc",
@@ -133,11 +142,6 @@ class SoftwareWindow (InventoryWindow):
         (25, 24): "D5",
         (28, 24): "D6",
     }
-
-
-class HardwareWindow (InventoryWindow):
-    x, y, width, height = 5, 5, 29, 21
-    title = "Hardware"
 
     def render(self, console: Console, cursor: Optional[int] = None) -> None:
         console.rgb[5:34,5:26] = graphics.hardware

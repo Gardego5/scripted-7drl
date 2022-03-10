@@ -25,6 +25,7 @@ import calculator
 
 class Entity:
     parent: Union[GameMap, Inventory]
+    description: str = ""
     # A generic object to represent players, enemies, items, etc.
     def __init__(
         self,
