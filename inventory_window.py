@@ -37,6 +37,10 @@ class InventoryWindow:
         return self.listings[self.cursor]
 
     @property
+    def selected_item(self) -> Item:
+        return self.selected_listing[1]
+
+    @property
     def listings(self) -> Iterable[Tuple[str, Item]]:
         listings = []
         for item in self.inventory.items:

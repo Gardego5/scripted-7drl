@@ -141,3 +141,8 @@ class PickupAction (Action):
                         raise exceptions.Impossible("You have no inventory.")
                     else:
                         raise exceptions.Impossible(f"The {self.entity.name} has no inventory.")
+
+
+class DropItem (ItemAction):
+    def perform(self) -> None:
+        self.item.container.drop(self.item, self.entity.pos)

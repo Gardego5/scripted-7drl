@@ -5,7 +5,7 @@ from typing import Optional, TYPE_CHECKING
 import tcod.event
 from tcod import Console
 
-from actions import Action, EscapeAction, BumpAction, WaitAction, PickupAction
+from actions import Action, EscapeAction, BumpAction, WaitAction, PickupAction, DropItem
 from inventory_window import HardwareWindow, InventoryWindow, SoftwareWindow
 import keybinds
 import color
@@ -192,6 +192,8 @@ class InventoryEventHandler (Menu):
                 self.cursor = max(0, min(self.cursor + adjust, len(self.active_window.listings) - 1))
         elif event.sym in keybinds.QUIT_KEYS:
             self.close_menu()
+        elif event.sym in keybinds.INV_DROP_KEY and self.active_window is self.inventory_window:
+            DropItem(self.player, self.active_window.selected_item).perform()
 
     def ev_mousebuttondown(self, event: tcod.event.MouseButtonDown) -> None:
         for i_window in [self.hardware_window, self.inventory_window, self.software_window]:

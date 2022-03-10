@@ -69,6 +69,13 @@ class Entity:
         self._x, self._y = new_pos
 
     @property
+    def ancestor(self) -> GameMap:
+        if hasattr(self.parent, "entities"):
+            return self.parent
+        else:
+            return self.parent.entity.ancestor
+
+    @property
     def game_map(self) -> GameMap:
         if hasattr(self, "parent"):
             if hasattr(self.parent, "entities"):
@@ -120,6 +127,8 @@ class Entity:
         self.pos = pos
         if game_map:
             self.game_map = game_map
+        else:
+            self.game_map = self.ancestor
 
     def move(self, delta: Tuple[int, int]) -> None:
         self.pos = calculator.tuple_add(self.pos, delta)

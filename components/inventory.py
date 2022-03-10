@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, TYPE_CHECKING
+from typing import List, Tuple, TYPE_CHECKING
 
 from components.base_component import BaseComponent
 
@@ -15,9 +15,8 @@ class Inventory (BaseComponent):
         self.capacity = capacity
         self.items: List[Item] = []
     
-    def drop(self, item: Item) -> None:
-        self.items.remove(item)
-        item.place(self.entity.pos)
+    def drop(self, item: Item, pos: Tuple[int, int]) -> None:
+        item.place(pos, item.ancestor)
 
         if self.entity == self.engine.player:
             self.engine.message_log.add_message(f"You drop the {item.name}.")
