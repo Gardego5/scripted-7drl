@@ -8,6 +8,7 @@ from components.inventory import Inventory
 import color
 import graphics
 import exceptions
+import calculator
 
 
 class InventoryWindow:
@@ -43,7 +44,7 @@ class InventoryWindow:
         return listings
 
     @property
-    def render_mode(self) -> Tuple[Iterable[Tuple[str, Item]], int]:
+    def _render_mode(self) -> Tuple[Iterable[Tuple[str, Item]], int]:
         # Listings short enought to display without wrap.
         if len(self.listings) < self.height:
             return self.listings[:min(len(self.listings), self.height)], self.cursor
@@ -63,7 +64,7 @@ class InventoryWindow:
     def hover_zones(self, pos: Tuple[int, int]) -> Tuple[Item, int]:
         # Returns the item under the position and it's position in the listings.
         if self.x <= pos[0] < self.x + self.width and self.y <= pos[1] < self.y + self.height:
-            displayed_listings, selected = self.render_mode
+            displayed_listings, selected = self._render_mode
             displayed_i = pos[1] - self.y
             return displayed_listings[displayed_i][1], displayed_i - selected + self.cursor
         else:
@@ -73,7 +74,7 @@ class InventoryWindow:
         # Save the cursor if one is provided
         if cursor is not None: self.cursor = cursor
 
-        displayed_listings, selected = self.render_mode
+        displayed_listings, selected = self._render_mode
 
         console.draw_frame(self.x - 1, self.y - 1, self.width + 2, self.height + 2, title=self.title)
 
@@ -92,6 +93,30 @@ class SoftwareWindow (InventoryWindow):
 class HardwareWindow (InventoryWindow):
     x, y, width, height = 5, 5, 29, 21
     title = "Hardware"
+    item_zones = {
+        ( 8,  6): 0,
+        ( 9,  6): 0,
+        (12,  6): 1,
+        (13,  6): 1,
+        (16,  6): 2,
+        (17,  6): 2,
+        (21,  6): 3,
+        (22,  6): 3,
+        (25,  6): 4,
+        (26,  6): 4,
+        (29,  6): 5,
+        (30,  6): 5,
+        ( 9, 16): 6,
+        (19, 15): 7,
+        (29, 13): 8,
+        (31, 19): 9,
+        (10, 24): 10,
+        (13, 24): 11,
+        (16, 24): 12,
+        (22, 24): 13,
+        (25, 24): 14,
+        (28, 24): 15,
+    }
     zones = {
         (18, 14): "CPU_desc",
         (19, 14): "CPU_desc",
@@ -143,5 +168,35 @@ class HardwareWindow (InventoryWindow):
         (28, 24): "D6",
     }
 
+    @property
+    def listings(self) -> Iterable[Tuple[str, Item]]:
+        return [(item.inventory.items[0].name, item.inventory.items[0]) if len(item.inventory.items) else (item.name, item) for item in self.inventory.items]
+
+    def hover_zones(self, pos: Tuple[int, int]) -> Tuple[Item, int]:
+        # Returns the item under the position and it's position in the listings.
+        if self.x <= pos[0] < self.x + self.width and self.y <= pos[1] < self.y + self.height:
+            if pos in self.item_zones:
+                return self.inventory.items[self.item_zones[pos]], self.item_zones[pos]
+            else:
+                raise IndexError
+        else:
+            raise exceptions.OutOfWindow
+
     def render(self, console: Console, cursor: Optional[int] = None) -> None:
+        # Save the cursor if one is provided
+        if cursor is not None: self.cursor = cursor
+
+        # Print the harware graphic
         console.rgb[5:34,5:26] = graphics.hardware
+
+        # Print the devices
+        for i, device in enumerate(self.inventory.items):
+            if i == self.cursor:
+                bg = color.ui_bg_highlighted
+            else:
+                bg = color.ui_bg
+            if len(device.inventory.items) == 1:
+                installed_device = device.inventory.items[0]
+                console.print(*device.pos, installed_device.char, fg = installed_device.color, bg = bg)
+            else:
+                console.print(*device.pos, device.char, fg = device.color, bg = bg)
