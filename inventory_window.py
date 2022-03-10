@@ -6,6 +6,7 @@ from tcod import Console
 from entity import Item
 from components.inventory import Inventory
 import color
+import exceptions
 
 
 class InventoryWindow:
@@ -59,7 +60,7 @@ class InventoryWindow:
             displayed_i = pos[1] - self.y
             return displayed_listings[displayed_i][1], displayed_i - selected + self.cursor
         else:
-            raise KeyError
+            raise exceptions.OutOfWindow
 
     def render(self, console: Console, cursor: Optional[int] = None) -> None:
         # Save the cursor if one is provided

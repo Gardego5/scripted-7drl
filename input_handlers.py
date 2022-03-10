@@ -209,10 +209,10 @@ class InventoryEventHandler (Menu):
             self.inventory_window.render(console)
 
         # Draw Software Screen
-        console.draw_frame(38, 2, 24, 46, title="Software")
+        console.draw_frame(38, 2, 25, 36, title="Software")
 
         # Draw Help Screen
-        # TODO: Draw Help Screen
+        console.draw_frame(64, 27, 14, 21, title="Info")
 
     def ev_keydown(self, event: tcod.event.KeyDown) -> None:
         if event.sym in keybinds.CURSOR_Y_KEYS:
@@ -226,11 +226,9 @@ class InventoryEventHandler (Menu):
         elif event.sym in keybinds.QUIT_KEYS:
             self.close_menu()
 
-    def ev_mousemotion(self, event: tcod.event.MouseMotion) -> None:
-        under_mouse = None
-        try: under_mouse = self.hover_zones[event.tile]
-        except KeyError: pass
-        try: under_mouse = self.inventory_window.hover_zones(event.tile)
-        except KeyError: pass
-        if under_mouse == None: under_mouse = event.tile
-        print(under_mouse)
+    def ev_mousebuttondown(self, event: tcod.event.MouseButtonDown) -> None:
+        for i_window in [self.inventory_window]:
+            try:
+                item, self.cursor = i_window.hover_zones(self.engine.mouse_location)
+            except exceptions.OutOfWindow:
+                pass
