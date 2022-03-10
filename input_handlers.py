@@ -205,9 +205,9 @@ class InventoryEventHandler (Menu):
         # Draw Inventory Screen
         console.draw_frame(2, 30, 35, 18, title="Inventory")
         if self.window == "Inventory":
-            self.inventory_window.render(console, 3, 31, 33, 16, cursor = self.cursor)
+            self.inventory_window.render(console, self.cursor)
         else: 
-            self.inventory_window.render(console, 3, 31, 33, 16)
+            self.inventory_window.render(console)
 
         # Draw Software Screen
         console.draw_frame(38, 2, 24, 46, title="Software")

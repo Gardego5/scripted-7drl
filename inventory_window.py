@@ -11,6 +11,8 @@ import color
 class InventoryWindow:
     def __init__(self, inventory: Inventory) -> None:
         self.inventory = inventory
+        self.x, self.y, self.width, self.height = 3, 31, 33, 16
+        self.cursor = 0
 
     @staticmethod
     def format_listing(item: Item, layer: int = 0) -> Iterable[Tuple[str, Item]]:
@@ -30,30 +32,32 @@ class InventoryWindow:
             listings.extend(self.format_listing(item))
         return listings
 
-    def render(
-        self, console: Console, x: int, y: int, width: int, height: int, cursor: Optional[int] = None,
-    ) -> None:
-        if len(self.listings) < height or not cursor:
-            for i, (listing, item) in enumerate(self.listings[:min(len(self.listings), height)]):
-                if i == cursor:
-                    console.print(x, y + i, listing, fg = item.color, bg = color.ui_bg_highlighted)
-                else:
-                    console.print(x, y + i, listing, fg = item.color, bg = color.ui_bg)
-        elif cursor < int(height / 2):
-            for i, (listing, item) in enumerate(self.listings[:min(len(self.listings), height)]):
-                if i == cursor:
-                    console.print(x, y + i, listing, fg = item.color, bg = color.ui_bg_highlighted)
-                else:
-                    console.print(x, y + i, listing, fg = item.color, bg = color.ui_bg)
-        elif cursor > len(self.listings) - int(height / 2):
-            for i, (listing, item) in enumerate(self.listings[-min(len(self.listings), height):]):
-                if i == cursor + height - len(self.listings):
-                    console.print(x, y + i, listing, fg = item.color, bg = color.ui_bg_highlighted)
-                else:
-                    console.print(x, y + i, listing, fg = item.color, bg = color.ui_bg)
+    @property
+    def render_mode(self) -> Tuple[Iterable[Tuple[str, Item]], int]:
+        # Listings short enought to display without wrap.
+        if len(self.listings) < self.height:
+            return self.listings[:min(len(self.listings), self.height)], self.cursor
+
+        # Cursor at first half of wrapped listings displayed.
+        elif self.cursor < int(self.height / 2):
+            return self.listings[:min(len(self.listings), self.height)], self.cursor
+
+        # Cursor at second half of wrapped listings displayed.
+        elif self.cursor > len(self.listings) - int(self.height / 2):
+            return self.listings[-min(len(self.listings), self.height):], self.cursor + self.height - len(self.listings)
+
+        # Cursor in the middle of wrapped listings displayed.
         else:
-            for i, (listing, item) in enumerate(self.listings[cursor - int(height / 2):cursor + int(height / 2)]):
-                if i == int(height / 2):
-                    console.print(x, y + i, listing, fg = item.color, bg = color.ui_bg_highlighted)
-                else:
-                    console.print(x, y + i, listing, fg = item.color, bg = color.ui_bg)
+            return self.listings[self.cursor - int(self.height / 2):self.cursor + int(self.height / 2)], int(self.height / 2)
+
+    def render(self, console: Console, cursor: Optional[int] = None) -> None:
+        # Save the cursor if one is provided
+        if cursor is not None: self.cursor = cursor
+
+        displayed_listings, selected = self.render_mode
+
+        for i, (listing, item) in enumerate(displayed_listings):
+            if i == selected:
+                console.print(self.x, self.y + i, listing, fg = item.color, bg = color.ui_bg_highlighted)
+            else:
+                console.print(self.x, self.y + i, listing, fg = item.color, bg = color.ui_bg)
