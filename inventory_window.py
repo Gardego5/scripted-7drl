@@ -15,7 +15,7 @@ class InventoryWindow:
         self.x, self.y, self.width, self.height = 3, 31, 33, 16
         self.cursor = 0
 
-    def format_listing(self, item: Item, layer: int = 0) -> Iterable[Tuple[str, Item]]:
+    def _format_listing(self, item: Item, layer: int = 0) -> Iterable[Tuple[str, Item]]:
         formated_listings = []
 
         formated_listing = f" {' '*layer}{'>'*bool(layer)}{item.name}"
@@ -24,7 +24,7 @@ class InventoryWindow:
         formated_listings.append((formated_listing, item))
         if hasattr(item, "inventory"):
             for sub_item in item.inventory.items:
-                formated_listings.extend(self.format_listing(sub_item, layer = layer + 1))
+                formated_listings.extend(self._format_listing(sub_item, layer = layer + 1))
 
         return formated_listings
 
@@ -32,7 +32,7 @@ class InventoryWindow:
     def listings(self) -> Iterable[Tuple[str, Item]]:
         listings = []
         for item in self.inventory.items:
-            listings.extend(self.format_listing(item))
+            listings.extend(self._format_listing(item))
         return listings
 
     @property
