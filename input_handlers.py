@@ -5,7 +5,7 @@ from typing import Optional, TYPE_CHECKING
 import tcod.event
 from tcod import Console
 
-from actions import Action, EscapeAction, BumpAction, WaitAction, PickupAction, DropItem
+from actions import Action, EscapeAction, BumpAction, WaitAction, PickupAction, DropItem, ItemAction
 from inventory_window import HardwareWindow, InventoryWindow, SoftwareWindow
 import keybinds
 import color
@@ -28,13 +28,13 @@ class EventHandler (tcod.event.EventDispatch[Action]):
         # Will return true if advances a turn.
         if action is None:
             return False
-        
+
         try:
             action.perform()
         except exceptions.Impossible as exc:
             self.engine.message_log.add_message(exc.args[0], color.impossible)
             return False  # Skip enemy turn on exceptions
-        
+
         self.engine.handle_enemy_turns()
 
         self.engine.update_fov()
@@ -150,6 +150,9 @@ class InventoryEventHandler (Menu):
         return windows[self.window]
 
     def on_render(self, console: Console) -> None:
+        super().on_render(console)
+        console.draw_frame(2, 2, 76, 46, decoration = "         ", bg = color.ui_bg, fg = color.ui_main)
+
         player = self.engine.player
 
         # Draw Normal UI Elements
@@ -184,6 +187,8 @@ class InventoryEventHandler (Menu):
         console.draw_frame(64, 27, 14, 21, title="Info")
 
     def ev_keydown(self, event: tcod.event.KeyDown) -> None:
+        action = None
+
         # Move the cursor in the selected window, but don't make it out of bounds of the window's listings.
         if event.sym in keybinds.CURSOR_Y_KEYS:
             adjust = keybinds.CURSOR_Y_KEYS[event.sym]
@@ -196,7 +201,11 @@ class InventoryEventHandler (Menu):
         elif event.sym in keybinds.QUIT_KEYS:
             self.close_menu()
         elif event.sym in keybinds.INV_DROP_KEY and self.active_window is self.inventory_window:
-            DropItem(self.player, self.active_window.selected_item).perform()
+            action = DropItem(self.player, self.active_window.selected_item)
+        elif event.sym in keybinds.INV_USE_KEY and self.active_window is self.inventory_window:
+            action = ItemAction(self.player, self.active_window.selected_item)
+        
+        return action
 
     def ev_mousebuttondown(self, event: tcod.event.MouseButtonDown) -> None:
         for i_window in [self.hardware_window, self.inventory_window, self.software_window]:

@@ -110,8 +110,6 @@ class Entity:
         return self._inventory
     @inventory.setter
     def inventory(self, inventory: Inventory) -> None:
-        if hasattr(self, "_inventory"):
-            del self._inventory.entity
         self._inventory = inventory
         self._inventory.entity = self
 
@@ -225,15 +223,15 @@ class Item (Entity):
             inventory = inventory,
         )
 
-        if consumable: self.consumable = consumable
+        if consumable:
+            self.consumable = consumable
+            self.consumable.entity = self
     
     @property
     def consumable(self) -> Consumable:
         return self._consumable
     @consumable.setter
     def consumable(self, consumable) -> None:
-        if hasattr(self, "_consumable"):
-            del self._consumable.entity
         self._consumable = consumable
         self._consumable.entity = self
 

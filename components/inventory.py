@@ -22,3 +22,7 @@ class Inventory (BaseComponent):
             self.engine.message_log.add_message(f"You drop the {item.name}.")
         else:
             self.engine.message_log.add_message(f"The {self.entity.name} drops the {item.name}.")
+    
+    def delete(self, item: Item):
+        self.items.remove(item)
+        del item.parent
