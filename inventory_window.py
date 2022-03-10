@@ -34,7 +34,15 @@ class InventoryWindow:
 
     @property
     def selected_listing(self) -> Tuple[str, Item]:
-        return self.listings[self.cursor]
+        try:
+            return self.listings[self.cursor]
+        except IndexError:
+            if self.cursor > 0:
+                self.cursor -= 1
+                return self.selected_listing
+            else:
+                return "", None
+
 
     @property
     def selected_item(self) -> Item:
