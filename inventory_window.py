@@ -14,14 +14,16 @@ class InventoryWindow:
         self.x, self.y, self.width, self.height = 3, 31, 33, 16
         self.cursor = 0
 
-    @staticmethod
-    def format_listing(item: Item, layer: int = 0) -> Iterable[Tuple[str, Item]]:
+    def format_listing(self, item: Item, layer: int = 0) -> Iterable[Tuple[str, Item]]:
         formated_listings = []
 
-        formated_listings.append((f"{' '*layer}{'>'*bool(layer)}{item.name}", item))
+        formated_listing = f" {' '*layer}{'>'*bool(layer)}{item.name}"
+        formated_listing = formated_listing + " " * (self.width - len(formated_listing))
+
+        formated_listings.append((formated_listing, item))
         if hasattr(item, "inventory"):
             for sub_item in item.inventory.items:
-                formated_listings.extend(InventoryWindow.format_listing(sub_item, layer = layer + 1))
+                formated_listings.extend(self.format_listing(sub_item, layer = layer + 1))
 
         return formated_listings
 
@@ -49,6 +51,15 @@ class InventoryWindow:
         # Cursor in the middle of wrapped listings displayed.
         else:
             return self.listings[self.cursor - int(self.height / 2):self.cursor + int(self.height / 2)], int(self.height / 2)
+
+    def hover_zones(self, pos: Tuple[int, int]) -> Tuple[Item, int]:
+        # Returns the item under the position and it's position in the listings.
+        if self.x <= pos[0] < self.x + self.width and self.y <= pos[1] < self.y + self.height:
+            displayed_listings, selected = self.render_mode
+            displayed_i = pos[1] - self.y
+            return displayed_listings[displayed_i][1], displayed_i - selected + self.cursor
+        else:
+            raise KeyError
 
     def render(self, console: Console, cursor: Optional[int] = None) -> None:
         # Save the cursor if one is provided

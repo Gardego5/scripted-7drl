@@ -227,7 +227,10 @@ class InventoryEventHandler (Menu):
             self.close_menu()
 
     def ev_mousemotion(self, event: tcod.event.MouseMotion) -> None:
-        try:
-            print(self.hover_zones[event.tile])
-        except KeyError:
-            print(event.tile)
+        under_mouse = None
+        try: under_mouse = self.hover_zones[event.tile]
+        except KeyError: pass
+        try: under_mouse = self.inventory_window.hover_zones(event.tile)
+        except KeyError: pass
+        if under_mouse == None: under_mouse = event.tile
+        print(under_mouse)
