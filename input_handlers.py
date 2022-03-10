@@ -77,7 +77,7 @@ class MainGameEventHandler (EventHandler):
             action = WaitAction(self.player)
         elif event.sym in keybinds.QUIT_KEYS:
             action = EscapeAction(self.player)
-        elif event.sym in keybinds.OPEN_HISTORY_VIEWER_KEYS:
+        elif event.sym in keybinds.HISTORY_VIEWER_KEYS:
             HistoryViewer(self)
         elif event.sym in keybinds.PICKUP_KEY:
             action = PickupAction(self.player)
@@ -91,7 +91,7 @@ class GameOverEventHandler (EventHandler):
     def ev_keydown(self, event: tcod.event.KeyDown) -> None:
         if event.sym in keybinds.QUIT_KEYS:
             raise SystemExit()
-        elif event.sym in keybinds.OPEN_HISTORY_VIEWER_KEYS:
+        elif event.sym in keybinds.HISTORY_VIEWER_KEYS:
             HistoryViewer(self)
 
 class HistoryViewer (Menu):

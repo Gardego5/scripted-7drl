@@ -33,22 +33,15 @@ WAIT_KEYS = {
     tcod.event.K_CLEAR,
 }
 
-PICKUP_KEY = {
-    tcod.event.K_g,
-}
-
-INVENTORY_KEY = {
-    tcod.event.K_i,
-}
+PICKUP_KEY = { tcod.event.K_g }
+INVENTORY_KEY = { tcod.event.K_i }
+HISTORY_VIEWER_KEYS = { tcod.event.K_v }
 
 QUIT_KEYS = {
     tcod.event.K_ESCAPE,
     tcod.event.K_q,
 }
 
-OPEN_HISTORY_VIEWER_KEYS = {
-    tcod.event.K_v,
-}
 
 # Keybinds for Menus
 CURSOR_Y_KEYS = {
@@ -58,14 +51,11 @@ CURSOR_Y_KEYS = {
     tcod.event.K_PAGEDOWN: 10,
 }
 
-CURSOR_BEGINNING_KEYS = {
-    tcod.event.K_HOME,
-}
+CURSOR_BEGINNING_KEYS = { tcod.event.K_HOME }
+CURSOR_END_KEYS = { tcod.event.K_END }
+CURSOR_SELECT_KEYS = { tcod.event.K_RETURN }
 
-CURSOR_END_KEYS = {
-    tcod.event.K_END,
-}
-
-CURSOR_SELECT_KEYS = {
-    tcod.event.K_RETURN,
-}
+# Keybinds for InventoryEventHandler
+INV_DROP_KEY = { tcod.event.K_d }
+INV_USE_KEY = { tcod.event.K_u }
+INV_INSTALL_KEY = { tcod.event.K_i }
