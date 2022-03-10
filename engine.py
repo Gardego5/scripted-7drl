@@ -6,7 +6,7 @@ from tcod.context import Context
 from tcod.console import Console
 from tcod.map import compute_fov
 
-from actions import EscapeAction, MovementAction
+from actions import MovementAction
 from entity import Actor, Camera
 from game_map import GameMap
 from input_handlers import MainGameEventHandler

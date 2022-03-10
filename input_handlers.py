@@ -5,7 +5,7 @@ from typing import Optional, TYPE_CHECKING
 import tcod.event
 from tcod import Console
 
-from actions import Action, EscapeAction, BumpAction, WaitAction, PickupAction, DropItem, ItemAction
+from actions import Action, BumpAction, WaitAction, PickupAction, DropItem, ItemAction
 from inventory_window import HardwareWindow, InventoryWindow, SoftwareWindow
 import keybinds
 import color
@@ -76,7 +76,7 @@ class MainGameEventHandler (EventHandler):
         elif event.sym in keybinds.WAIT_KEYS:
             action = WaitAction(self.player)
         elif event.sym in keybinds.QUIT_KEYS:
-            action = EscapeAction(self.player)
+            raise SystemExit()
         elif event.sym in keybinds.HISTORY_VIEWER_KEYS:
             HistoryViewer(self)
         elif event.sym in keybinds.PICKUP_KEY:
