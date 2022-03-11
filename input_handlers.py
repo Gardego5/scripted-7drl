@@ -235,7 +235,7 @@ class InventoryEventHandler (Menu):
 class SelectHandler (Menu):
     def __init__(self, previous: EventHandler) -> None:
         super().__init__(previous)
-        self.engine.mouse_location = self.engine.camera.game_map_to_console(pos = self.engine.player.pos)
+        self.engine.mouse_location = self.engine.camera.game_map_to_console(self.engine.player.pos)
     
     def on_render(self, console: tcod.Console) -> None:
         self.main_game.on_render(console)

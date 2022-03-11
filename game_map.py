@@ -59,7 +59,7 @@ class GameMap:
 
     def render(self, console: Console, camera: Camera) -> None:  # (x, y) is camera location
         # Calculate Bounds for drawing map.
-        xm, ym = camera.console_to_game_map(console)
+        xm, ym = camera.console_to_game_map(console = console)
         xm_1, ym_1 = max(0, xm), max(0, ym)
         xm_2, ym_2 = min(xm + console.width, self.width), min(ym + console.height, self.height)
         xc_1, yc_1 = max(0, -xm), max(0, -ym)
@@ -82,5 +82,5 @@ class GameMap:
         for entity in entities_sorted_for_rendering:
             # Only print entities that are in the FOV
             if self.visible[entity.pos]:
-                x, y = camera.game_map_to_console(console, entity.pos)
+                x, y = camera.game_map_to_console(entity.pos, console)
                 console.print(x, y, string=entity.char, fg=entity.color)

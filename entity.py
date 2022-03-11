@@ -262,7 +262,7 @@ class Camera (Entity):
     def from_entity(cls, entity: Entity) -> Camera:
         return Camera(entity.pos, entity)
 
-    def follow(self, console: Optional[console] = None, entity: Entity = None) -> None:
+    def follow(self, console: Optional[console] = None, entity: Optional[Entity] = None) -> None:
         if not console: console = self.console
         else: self.console = console
 
@@ -272,7 +272,7 @@ class Camera (Entity):
         if not hasattr(self, "entity"): raise AttributeError("Camera is not following any Entity.")
         self.pos = self.entity.pos
 
-    def console_to_game_map(self, console: Optional[Console] = None, pos: Tuple[int, int] = (0, 0)) -> Tuple[int, int]:
+    def console_to_game_map(self, pos: Tuple[int, int] = (0, 0), console: Optional[Console] = None) -> Tuple[int, int]:
         if not console: console = self.console
         else: self.console = console
 
@@ -280,7 +280,7 @@ class Camera (Entity):
         zero = calculator.tuple_subtract(self.pos, (int(console.width / 2), int(console.height / 2)))
         return calculator.tuple_add(pos, zero)
     
-    def game_map_to_console(self, console: Optional[Console] = None, pos: Tuple[int, int] = (0, 0)) -> Tuple[int, int]:
+    def game_map_to_console(self, pos: Tuple[int, int] = (0, 0), console: Optional[Console] = None) -> Tuple[int, int]:
         if not console: console = self.console
         else: self.console = console
 
@@ -293,6 +293,6 @@ class Camera (Entity):
         else: self.console = console
 
         # Draws a visual representation of the Camera on the console.
-        x, y = self.game_map_to_console(console, self.pos)
+        x, y = self.game_map_to_console(self.pos, console)
         console.print(x + 1, y - 1, "L", fg = self.color)
         console.print(x + 2, y - 2, self.char, fg = self.color)
