@@ -4,8 +4,9 @@ from typing import List, Tuple, TYPE_CHECKING
 
 import numpy as np  # type: ignore
 import tcod
+import random
 
-from actions import Action, MeleeAction, MovementAction, WaitAction
+from actions import Action, MeleeAction, MovementAction, WaitAction, BumpAction
 import calculator
 
 if TYPE_CHECKING:
@@ -13,7 +14,8 @@ if TYPE_CHECKING:
 
 
 class BaseAI(Action):
-    def __init__(self, tenacity: int = 10):
+    def __init__(self, entity: Actor, tenacity: int = 10):
+        self.entity = entity
         self.tenacity = tenacity
     
     entity: Actor
@@ -52,9 +54,8 @@ class BaseAI(Action):
 
 class HostileEnemy (BaseAI):
     def __init__(self, entity: Actor, tenacity: int = 10):
-        super().__init__(tenacity=tenacity)
+        super().__init__(entity, tenacity=tenacity)
         self.path: List[Tuple[int, int]] = []
-        self.entity = entity
     
     def perform(self) -> None:
         target = self.engine.player
@@ -73,3 +74,23 @@ class HostileEnemy (BaseAI):
             return MovementAction(self.entity, calculator.tuple_subtract(dest, self.entity.pos)).perform()
         
         return WaitAction(self.entity).perform()
+
+
+class ConfusedEnemy (BaseAI):
+    def __init__(self, entity: Actor, previous_ai: Optional[BaseAI], turns: int, chance: float = 0.90) -> None:
+        super().__init__(entity)
+
+        self.previous_ai = previous_ai
+        self.turns_remaining = turns
+        self.chance = chance
+    
+    def perform(self) -> None:
+        if self.turns_remaining <= 0:  # If the entity has been confused for long enough, stop it's confusion.
+            self.engine.message_log.add_message(f"The {self.entity.name} is no longer confused.")
+            self.entity.ai = self.previous_ai
+        elif random.random() > self.chance:  # The entity lucked out, and had a coherent thought for a moment.
+            return self.previous_ai.perform()
+        else:  # The entity stumbles about.
+            self.turns_remaining -= 1
+
+            return BumpAction(self.entity, calculator.random_direction()).perform()
