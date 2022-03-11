@@ -18,3 +18,12 @@ def random_direction() -> Tuple[int, int]:
         (-1,  1), ( 0,  1), ( 1,  1),
     ]
     return random.choice(dirs)
+
+def lucky_chance(chance: int, luck: int, luckability: int = 3):
+    # Calculates luck ajusted chance for you to succeed at something.
+    # Luck improves your chance, while high luckability dampens the effect
+    # of luck. Luckability represents the maximum fraction of the chance to
+    # fail that can be removed. The higher the luckability, the more high
+    # luck can have a beneficial impact, while the less of an impact a small
+    # amount of luck has. 
+    return chance/luckability*(luckability - 1) + (chance ** (luck/luckability + 1)) / luckability
