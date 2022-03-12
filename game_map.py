@@ -15,16 +15,18 @@ if TYPE_CHECKING:
 
 
 class GameMap:
+    down_stairs: optional[Tuple[int, int]] = None
+    up_stairs: optional[Tuple[int, int]] = None
+
     def __init__(
         self, 
         engine: Engine,
         width: int, height: int,
-        entities: Iterable[Entity] = (),
         fog: bool = True,
     ) -> None:
         self.engine = engine
         self.width, self.height = width, height
-        self.entities = set(entities)
+        self.entities = set()
 
         self.tiles = np.full((width, height), fill_value=tile_types.wall, order="F")
 
@@ -84,3 +86,10 @@ class GameMap:
             if self.visible[entity.pos]:
                 x, y = camera.game_map_to_console(entity.pos, console)
                 console.print(x, y, string=entity.char, fg=entity.color)
+
+
+class GameWorld:
+    def __init__(
+        self,
+    ):
+        pass
