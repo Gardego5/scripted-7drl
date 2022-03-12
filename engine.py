@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import lzma
+import pickle
+from os import mkdir
 from typing import TYPE_CHECKING
 
 from tcod.context import Context
@@ -17,6 +20,7 @@ import exceptions
 if TYPE_CHECKING:
     from entity import Entity
     from game_map import GameMap
+
 
 class Engine:
     game_map: GameMap
@@ -55,3 +59,8 @@ class Engine:
         render_health_bar(console, self.player.fighter.hp, self.player.fighter.max_hp)
         render_names_at_mouse_location(console, 2, console.height - 5, self)
         self.message_log.render(console, console.width - 42, console.height - 5, 40, 5)
+
+    def save_as(self) -> None:
+        save_data = lzma.compress(pickle.dumps(self))
+        with open("save", "wb") as file:
+            file.write(save_data)

@@ -8,6 +8,12 @@ import input_handlers
 from tile_types import SHROUD
 import setup_game
 
+
+def save_game(handler: input_handlers.BaseEventHandler) -> None:
+    if isinstance(handler, input_handlers.EventHandler):
+        handler.engine.save_as()
+        print("Game Saved.")
+
 def main() -> None:
     screen_width = 80 
     screen_height = 50
@@ -40,9 +46,9 @@ def main() -> None:
                     traceback.print_exc()  # Print to stderr.
                     engine.message_log.add_message(traceback.format_exc(), color.error)  # Print to message log.
         except exceptions.QuitWithoutSaving:
-            raise
+            return
         except SystemExit or BaseException:
-            # TODO: Add the save function here.
+            save_game(handler)
             raise
 
 

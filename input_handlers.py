@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from typing import Optional, TYPE_CHECKING, Callable, Tuple, Union
 
 import tcod.event
@@ -142,9 +143,12 @@ class MainGameEventHandler (EventHandler):
 
 
 class GameOverEventHandler (EventHandler):
+    def ev_quit(self, event: tcod.event.Quit()):
+        raise exceptions.QuitWithoutSaving()
+
     def ev_keydown(self, event: tcod.event.KeyDown) -> None:
         if event.sym in keybinds.QUIT_KEYS:
-            raise SystemExit()
+            raise exceptions.QuitWithoutSaving()
         elif event.sym in keybinds.HISTORY_VIEWER_KEYS:
             return HistoryViewer(self.engine)
 
@@ -351,3 +355,29 @@ class AreaRangedAttackSelector (RangedAttackSelector):
             fg=color.red,
             clear=False,
         )
+
+
+class PopupMessage (BaseEventHandler):
+    def __init__(self, previous: EventHandler, text: str) -> None:
+        self.previous = previous
+        self.text = text
+
+    def on_render(self, console: Console) -> None:
+        self.previous.on_render(console)
+        console.tiles["fg"] //= 8
+        console.tiles["bg"] //= 8
+
+        console.print(
+            console.width // 2,
+            console.height // 2,
+            self.text,
+            fg = color.white,
+            bg = color.black,
+            alignment = tcod.CENTER,
+        )
+
+    def ev_keydown(self, event: tcod.event.KeyDown) -> Optional[BaseEventHandler]:
+        return self.previous
+    
+    def ev_mousebuttondown(self, event: tcod.event.KeyDown) -> Optional[BaseEventHandler]:
+        return self.previous

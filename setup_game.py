@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import lzma
+import pickle
+from os import remove
 from typing import Optional
 
 import tcod
@@ -28,6 +31,14 @@ def new_game() -> Engine:
     engine.message_log.add_message("Wait; You boot up?!", color.welcome_text)
 
     return engine
+
+def load_game() -> Engine:
+    with open("save", "rb") as file:
+        engine = pickle.loads(lzma.decompress(file.read()))
+    assert isinstance(engine, Engine)
+    remove("save")
+    return engine
+
 
 class MainMenu(input_handlers.BaseEventHandler):
     """Handle the main menu rendering and input."""
@@ -66,8 +77,12 @@ class MainMenu(input_handlers.BaseEventHandler):
         if event.sym in keybinds.QUIT_KEYS:
             raise SystemExit()
         elif event.sym == tcod.event.K_c:
-            # TODO: Load the game here
-            pass
+            try:
+                return input_handlers.MainGameEventHandler(load_game())
+            except FileNotFoundError:
+                return input_handlers.PopupMessage(self, "No saved game to load.")
+            except Exception as exc:
+                return input_handlers.PopupMessage(self, "Failed to load save.")
         elif event.sym == tcod.event.K_n:
             return input_handlers.MainGameEventHandler(new_game())
 
