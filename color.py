@@ -25,6 +25,10 @@ invalid                     = 0xFF, 0xFF, 0x00
 impossible                  = gray_50
 error                       = 0xFF, 0x40, 0x40
 
+menu_title                  = 0xFF, 0xFF, 0x20
+menu_text                   = white
+menu_author                 = gray_15
+
 hp_bar_text                 = black
 hp_bar_filled               = 0xE1, 0xF0, 0x9E
 hp_bar_empty                = 0xFC, 0xFF, 0xF0
