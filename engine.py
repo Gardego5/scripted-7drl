@@ -9,7 +9,6 @@ from tcod.map import compute_fov
 from actions import MovementAction
 from entity import Actor, Camera
 from game_map import GameMap
-from input_handlers import MainGameEventHandler
 from message_log import MessageLog
 from render_functions import render_health_bar, render_names_at_mouse_location
 from inventory_window import InventoryWindow
@@ -18,7 +17,6 @@ import exceptions
 if TYPE_CHECKING:
     from entity import Entity
     from game_map import GameMap
-    from input_handlers import EventHandler
 
 class Engine:
     game_map: GameMap
@@ -27,7 +25,6 @@ class Engine:
         self,
         player: Actor,
     ) -> None:
-        self.event_handler: EventHandler = MainGameEventHandler(self)
         self.mouse_location = (0, 0)
         self.player = player
         self.message_log = MessageLog()

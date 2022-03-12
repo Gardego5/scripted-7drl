@@ -1,4 +1,15 @@
-class Impossible(Exception):
+class Impossible (Exception):
+    # Exception raised when an action is impossible to be performed.
+    # The reason is given as the exception message.
     pass
-class OutOfWindow(Exception):
+
+
+class OutOfWindow (Exception):
+    # Exception raised when in InventoryEventHandler and a tile is
+    # not within the specified window.
+    pass
+
+
+class QuitWithoutSaving (SystemExit):
+    # Can be raised to exit the game without automatically saving.
     pass

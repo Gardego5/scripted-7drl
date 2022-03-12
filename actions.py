@@ -86,7 +86,9 @@ class MovementAction (ActionWithDirection):
 
 class BumpAction (ActionWithDirection):
     def perform(self):
-        if self.target_actor:
+        if self.delta == (0, 0):
+            return WaitAction(self.entity).perform()
+        elif self.target_actor:
             return MeleeAction(self.entity, self.delta).perform()
         else:
             return MovementAction(self.entity, self.delta).perform()

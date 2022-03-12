@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Optional, TYPE_CHECKING
 
-from input_handlers import RangedAttackSelector, AreaRangedAttackSelector
+from input_handlers import ActionOrHandler, RangedAttackSelector, AreaRangedAttackSelector
 from actions import ItemAction
 import components.ai
 import color
@@ -27,7 +27,7 @@ class Consumable (BaseComponent):
         if self._uses < 1 and self.rechargeable == False:
             self.entity.container.delete(self.entity)
 
-    def get_action(self, consumer: Actor) -> Optional[actions.Action]:
+    def get_action(self, consumer: Actor) -> Optional[ActionOrHandler]:
         return ItemAction(consumer, self.entity)
     
     def activate(self, action: actions.ItemAction) -> None:
@@ -111,9 +111,9 @@ class ConfusionConsumable (Consumable):
         super().__init__(uses)
         self.turns = turns
 
-    def get_action(self, consumer: Actor) -> Optional[ItemAction]:
+    def get_action(self, consumer: Actor) -> Optional[ActionOrHandler]:
         self.engine.message_log.add_message("Select a target location.", color.needs_target)
-        RangedAttackSelector(self.engine.event_handler, lambda pos: ItemAction(consumer, self.entity, pos))
+        return RangedAttackSelector(self.engine, lambda pos: ItemAction(consumer, self.entity, pos))
 
     def activate(self, action: ItemAction) -> None:
         if not self.engine.game_map.visible[action.target_pos]:
@@ -124,7 +124,6 @@ class ConfusionConsumable (Consumable):
             raise Impossible("You cannot target yourself.")
 
         action.target_actor.ai = components.ai.ConfusedEnemy(entity = action.target_actor, previous_ai = action.target_actor.ai, turns = self.turns)
-        self.engine.event_handler.close_menu()
         self.consume()
 
 
@@ -141,9 +140,9 @@ class FireballDamageConsumable (Consumable):
         self.damage = damage
         self.radius = radius
 
-    def get_action(self, consumer: Actor) -> Optional[ItemAction]:
+    def get_action(self, consumer: Actor) -> Optional[ActionOrHandler]:
         self.engine.message_log.add_message("Select a target location.", color.needs_target)
-        AreaRangedAttackSelector(self.engine.event_handler, lambda pos: ItemAction(consumer, self.entity, pos), self.radius)
+        return AreaRangedAttackSelector(self.engine, lambda pos: ItemAction(consumer, self.entity, pos), self.radius)
     
     def activate(self, action: ItemAction) -> None:
         if not self.engine.game_map.visible[action.target_pos]:
@@ -158,6 +157,5 @@ class FireballDamageConsumable (Consumable):
             
         if not targets_hit:
             raise Impossible("There are no targets in the radius.")
-        
-        self.engine.event_handler.close_menu()
+
         self.consume()

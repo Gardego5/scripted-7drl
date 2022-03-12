@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Optional, TYPE_CHECKING, Callable, Tuple
+from typing import Optional, TYPE_CHECKING, Callable, Tuple, Union
 
 import tcod.event
 from tcod import Console
@@ -16,12 +16,40 @@ if TYPE_CHECKING:
     from engine import Engine
     from entity import Actor
 
-class EventHandler (tcod.event.EventDispatch[Action]):
+
+ActionOrHandler = Union[Action, "BaseEventHandler"]
+
+
+class BaseEventHandler (tcod.event.EventDispatch[Action]):
+    def handle_events(self, event: tcod.event.Event) -> BaseEventHandler:
+        state = self.dispatch(event)
+        if isinstance(state, BaseEventHandler):
+            return state
+        assert not isinstance(state, Action), f"{self!r} cannot handle actions."
+        return self
+    
+    def on_render(self, console: Console) -> None:
+        raise NotImplementedError()
+
+    def ev_quit(self, event: tcod.event.Quit()) -> Optional[Action]:
+        raise SystemExit()
+
+
+class EventHandler (BaseEventHandler):
     def __init__(self, engine: Engine):
         self.engine = engine
 
-    def handle_events(self, event: tcod.event.Event) -> None:
-        self.handle_action(self.dispatch(event))
+    def handle_events(self, event: tcod.event.Event) -> BaseEventHandler:
+        action_or_state = self.dispatch(event)
+        if isinstance(action_or_state, BaseEventHandler):
+            return action_or_state
+        if self.handle_action(action_or_state):
+            # A valid action was performed.
+            if not self.engine.player.is_alive:
+                # The player was killed sometime during or after the action.
+                return GameOverEventHandler(self.engine)
+            return MainGameEventHandler(self.engine)
+        return self
 
     def handle_action(self, action: Optional[Action]) -> bool:
         # Handles actions returned from event methods.
@@ -43,9 +71,6 @@ class EventHandler (tcod.event.EventDispatch[Action]):
     def ev_mousemotion(self, event: tcod.event.MouseMotion) -> None:
         if self.engine.game_map.in_bounds(event.tile):
             self.engine.mouse_location = event.tile
-
-    def ev_quit(self, event: tcod.event.Quit) -> Optional[Action]:
-        raise SystemExit()
     
     def on_render(self, console: Console) -> None:
         self.engine.camera.follow(console)  # Update the camera's position
@@ -57,44 +82,57 @@ class EventHandler (tcod.event.EventDispatch[Action]):
 
 
 class Menu (EventHandler):
-    def __init__(self, previous: EventHandler):
-        super().__init__(previous.engine)
-        previous.engine.event_handler = self
-        self.previous = previous
+    """Handles user input for actions which require special input."""
 
-    def close_menu(self) -> None:
-        self.engine.event_handler = self.previous
-    
-    @property
-    def main_game(self) -> MainGameEventHandler:
-        # Returns the main game event handler from any menu.
-        if isinstance(self.previous, MainGameEventHandler):
+    previous: EventHandler = None
+
+    def __init__(self, engine: Engine, previous: Optional[EventHandler] = None):
+        super().__init__(engine)
+        if previous: self.previous = previous
+
+    def ev_keydown(self, event: tcod.event.KeyDown) -> Optional[ActionOrHandler]:
+        """By default any key exits this input handler."""
+        if event.sym in {  # Ignore modifier keys.
+            tcod.event.K_LSHIFT,
+            tcod.event.K_RSHIFT,
+            tcod.event.K_LCTRL,
+            tcod.event.K_RCTRL,
+            tcod.event.K_LALT,
+            tcod.event.K_RALT,
+        }:
+            return None
+        return self.on_exit()
+
+    def ev_mousebuttondown(self, event: tcod.event.MouseButtonDown) -> Optional[ActionOrHandler]:
+        """By default any mouse click exits this input handler."""
+        return self.on_exit()
+
+    def on_exit(self) -> Optional[ActionOrHandler]:
+        """Called when the user is trying to exit or cancel an action.
+        Returns previous if it was given, otherwise returns to MainGameEventHandler.
+        """
+        if self.previous:
             return self.previous
         else:
-            return self.previous.main_game
+            return MainGameEventHandler(self.engine)
 
 
 class MainGameEventHandler (EventHandler):
-    def ev_keydown(self, event: tcod.event.KeyDown) -> Optional[Action]:
-        action: Optional[Action] = None
-
-        if event.sym in keybinds.MOVE_KEYS:
-            delta = keybinds.MOVE_KEYS[event.sym]
-            action = BumpAction(self.player, delta)
-        elif event.sym in keybinds.WAIT_KEYS:
-            action = WaitAction(self.player)
-        elif event.sym in keybinds.QUIT_KEYS:
+    def ev_keydown(self, event: tcod.event.KeyDown) -> Optional[ActionOrHandler]:
+        if event.sym in keybinds.QUIT_KEYS:
             raise SystemExit()
-        elif event.sym in keybinds.HISTORY_VIEWER_KEYS:
-            HistoryViewer(self)
-        elif event.sym in keybinds.PICKUP_KEY:
-            action = PickupAction(self.player)
-        elif event.sym in keybinds.INVENTORY_KEY:
-            InventoryEventHandler(self)
-        elif event.sym in keybinds.LOOK_VIEWER_KEY:
-            LookHandler(self)
+        if event.sym in keybinds.MOVE_KEYS:
+            return BumpAction(self.player, keybinds.MOVE_KEYS[event.sym])
+        if event.sym in keybinds.HISTORY_VIEWER_KEYS:
+            return HistoryViewer(self.engine)
+        if event.sym in keybinds.PICKUP_KEY:
+            return PickupAction(self.player)
+        if event.sym in keybinds.INVENTORY_KEY:
+            return InventoryEventHandler(self.engine)
+        if event.sym in keybinds.LOOK_VIEWER_KEY:
+            return LookHandler(self.engine)
         
-        return action
+        return None
 
 
 class GameOverEventHandler (EventHandler):
@@ -102,11 +140,11 @@ class GameOverEventHandler (EventHandler):
         if event.sym in keybinds.QUIT_KEYS:
             raise SystemExit()
         elif event.sym in keybinds.HISTORY_VIEWER_KEYS:
-            HistoryViewer(self)
+            return HistoryViewer(self.engine)
 
 class HistoryViewer (Menu):
-    def __init__(self, previous: EventHandler):
-        super().__init__(previous)
+    def __init__(self, engine: Engine):
+        super().__init__(engine)
         self.log_length = len(self.engine.message_log.messages)
         self.cursor = self.log_length - 1
     
@@ -124,7 +162,7 @@ class HistoryViewer (Menu):
         )
         log_console.blit(console, 3, 3)
     
-    def ev_keydown(self, event: tcod.event.KeyDown) -> None:
+    def ev_keydown(self, event: tcod.event.KeyDown) -> Optional[ActionOrHandler]:
         if event.sym in keybinds.CURSOR_Y_KEYS:
             adjust = keybinds.CURSOR_Y_KEYS[event.sym]
             if adjust < 0 and self.cursor == 0:
@@ -138,12 +176,13 @@ class HistoryViewer (Menu):
         elif event.sym in keybinds.CURSOR_END_KEYS:
             self.cursor = self.log_length - 1
         else:
-            self.close_menu()
+            return self.on_exit()
+        return None
 
 
 class InventoryEventHandler (Menu):
-    def __init__(self, previous: EventHandler):
-        super().__init__(previous)
+    def __init__(self, engine: Engine):
+        super().__init__(engine)
         self.cursor = 0
         self.window = "Inventory"
         self.hardware_window = HardwareWindow(self.player.hardware)
@@ -196,7 +235,7 @@ class InventoryEventHandler (Menu):
         # Draw Info Screen
         console.draw_frame(64, 27, 14, 21, title="Info")
 
-    def ev_keydown(self, event: tcod.event.KeyDown) -> None:
+    def ev_keydown(self, event: tcod.event.KeyDown) -> Optional[ActionOrHandler]:
         action = None
 
         # Move the cursor in the selected window, but don't make it out of bounds of the window's listings.
@@ -209,16 +248,16 @@ class InventoryEventHandler (Menu):
             else:
                 self.cursor = max(0, min(self.cursor + adjust, len(self.active_window.listings) - 1))
         elif event.sym in keybinds.QUIT_KEYS:
-            self.close_menu()
+            return self.on_exit()
         elif event.sym in keybinds.INV_DROP_KEY and self.active_window is self.inventory_window:
-            action = DropItem(self.player, self.active_window.selected_item)
+            return DropItem(self.player, self.active_window.selected_item)
         elif event.sym in keybinds.INV_USE_KEY and self.active_window is self.inventory_window:
-            action = self.inventory_window.selected_item.consumable.get_action(self.engine.player)
-            # ItemAction(self.player, self.active_window.selected_item)
-        
-        return action
+            if hasattr(self.inventory_window.selected_item, "consumable"):
+                return self.inventory_window.selected_item.consumable.get_action(self.engine.player)
+            self.engine.message_log.add_message("You can not use this item that way.", color.impossible)
+            return None
 
-    def ev_mousebuttondown(self, event: tcod.event.MouseButtonDown) -> None:
+    def ev_mousebuttondown(self, event: tcod.event.MouseButtonDown) -> Optional[ActionOrHandler]:
         for i_window in [self.hardware_window, self.inventory_window, self.software_window]:
             try:
                 # If you clicked on a selectable item, then select that item in that window.
@@ -234,16 +273,16 @@ class InventoryEventHandler (Menu):
 
 
 class SelectHandler (Menu):
-    def __init__(self, previous: EventHandler) -> None:
-        super().__init__(previous)
+    def __init__(self, engine: Engine) -> None:
+        super().__init__(engine)
         self.engine.mouse_location = self.engine.camera.game_map_to_console(self.engine.player.pos)
     
     def on_render(self, console: Console) -> None:
-        self.main_game.on_render(console)
+        MainGameEventHandler.on_render(self, console)
         console.rgb["bg"][self.engine.mouse_location] = color.white
         console.rgb["fg"][self.engine.mouse_location] = color.black
     
-    def ev_keydown(self, event: tcod.event.KeyDown) -> Optional[Action]:
+    def ev_keydown(self, event: tcod.event.KeyDown) -> Optional[ActionOrHandler]:
         if event.sym in keybinds.MOVE_KEYS:
             modifier = 1
             for mod in keybinds.MOVE_MODIFIER_KEYS:
@@ -261,35 +300,35 @@ class SelectHandler (Menu):
         elif event.sym in keybinds.CURSOR_SELECT_KEYS:
             return self.on_index_selected(self.engine.mouse_location)
         elif event.sym in keybinds.QUIT_KEYS:
-            self.close_menu()
+            return self.on_exit()
 
-    def ev_mousebuttondown(self, event: tcod.event.MouseButtonDown) -> None:
+    def ev_mousebuttondown(self, event: tcod.event.MouseButtonDown) -> Optional[ActionOrHandler]:
         return self.on_index_selected(self.engine.mouse_location)
 
-    def on_index_selected(self, pos: Tuple[int, int]) -> Optional[Action]:
+    def on_index_selected(self, pos: Tuple[int, int]) -> Optional[ActionOrHandler]:
         raise NotImplementedError()
 
 
 class LookHandler (SelectHandler):
-    def on_index_selected(self, pos: Tuple[int, int]) -> None:
-        self.close_menu()
+    def on_index_selected(self, pos: Tuple[int, int]) -> Optional[ActionOrHandler]:
+        self.on_exit()
 
 
 class RangedAttackSelector (SelectHandler):
     # Allows selecting a tile. If there are qualms about the tile selected, request a new tile. 
     # If a suitable tile is found, 
-    def __init__(self, previous: EventHandler, callback: Callable[[Tuple[int, int]], Action]) -> None:
-        super().__init__(previous)
+    def __init__(self, engine: Engine, callback: Callable[[Tuple[int, int]], Action]) -> None:
+        super().__init__(engine)
 
         self.callback = callback
     
-    def on_index_selected(self, pos: Tuple[int, int]) -> Optional[Action]:
+    def on_index_selected(self, pos: Tuple[int, int]) -> Optional[ActionOrHandler]:
         return self.callback(self.engine.camera.console_to_game_map(pos))
 
 
 class AreaRangedAttackSelector (RangedAttackSelector):
-    def __init__(self, previous: EventHandler, callback: Callable[[Tuple[int, int]], Action], radius: int) -> None:
-        super().__init__(previous, callback)
+    def __init__(self, engine: Engine, callback: Callable[[Tuple[int, int]], Action], radius: int) -> None:
+        super().__init__(engine, callback)
         
         self.radius = radius
     
