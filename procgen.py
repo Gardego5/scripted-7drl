@@ -92,7 +92,7 @@ def place_stairs(
                     and dungeon.tiles[pos] not in tile_types.reserved)
 
     # Try to place stairs in a smaller room first.
-    for room in sorted(rooms, key=lambda room: room.area * random.randrange(0.7, 1.5)):
+    for room in sorted(rooms, key=lambda room: room.area * (random.random() + 1)):
         try:
             pos = random_suitable_pos(room, dungeon, suitable)
 
@@ -115,10 +115,10 @@ def generate_dungeon(
 ) -> GameMap:
     player = engine.player
 
-    dungeon = GameMap(engine, map_width, map_height, False)
+    dungeon = GameMap(engine, map_width, map_height)
     
     structures = [
-        generated_structures.RectangularRoom(10, 10, 60, 60),
+        generated_structures.Tower(10, 10, 60, 60),
     ]
 
     simple_structures = []
