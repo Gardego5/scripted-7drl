@@ -33,12 +33,17 @@ janitor = Actor(
 # Items
 health_potion = Item(
     char="!", color=(127, 0, 255), name="Health Potion",
-    consumable = consumable.HealingConsumable(amount=7)
+    consumable = consumable.HealingConsumable(amount=7),
 )
 
 lightning_scroll = Item(
     char="~", color=color.yellow, name="Lightning Scroll",
-    consumable=consumable.LightningDamageConsumable(damage=20, maximum_range=5)
+    consumable=consumable.LightningDamageConsumable(damage=20, maximum_range=5),
+)
+
+confusion_scroll = Item(
+    char="~", color=(207, 63, 255), name="Confusion Scroll",
+    consumable=consumable.ConfusionConsumable(10),
 )
 
 bag = Item(
@@ -48,6 +53,7 @@ bag = Item(
 
 for i in range(3): health_potion.spawn().container = bag.inventory
 bag.spawn().container = player.inventory
+confusion_scroll.spawn().container = player.inventory
 
 enemies = {
     0.3: scientist,
@@ -57,5 +63,6 @@ enemies = {
 items = {
     0.6: health_potion,
     0.3: bag,
-    1.2: lightning_scroll,
+    0.2: lightning_scroll,
+    1.5: confusion_scroll,
 }

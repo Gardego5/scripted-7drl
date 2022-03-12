@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from typing import Optional, TYPE_CHECKING
 
+from input_handlers import RangedAttackSelector
 from actions import ItemAction
+import components.ai
 import color
 from components.base_component import BaseComponent
 from exceptions import Impossible
@@ -26,7 +28,7 @@ class Consumable (BaseComponent):
             self.entity.container.delete(self.entity)
 
     def get_action(self, consumer: Actor) -> Optional[actions.Action]:
-        return actions.ItemAction(consumer, self.entity)
+        return ItemAction(consumer, self.entity)
     
     def activate(self, action: actions.ItemAction) -> None:
         raise NotImplementedError()
@@ -95,3 +97,34 @@ class LightningDamageConsumable (Consumable):
             self.consume()
         else:
             raise Impossible("No enemy is close enough to strike")
+
+
+class ConfusionConsumable (Consumable):
+    def __init__(
+        self, 
+        turns: int, 
+        chance: float = 1.0,
+        *,
+        uses: int = 1,
+    ) -> None:
+        super().__init__(uses)
+        self.turns = turns
+
+    def get_action(self, consumer: Actor):
+        self.engine.message_log.add_message("Select a target location.", color.needs_target)
+        RangedAttackSelector(self.engine.event_handler, lambda pos: ItemAction(consumer, self.entity, pos))
+
+    def activate(self, action: ItemAction) -> None:
+        consumer = action.entity
+        target = action.target_actor
+
+        if not self.engine.game_map.visible[action.target_pos]:
+            raise Impossible("You cannot target an area that you cannot see.")
+        if not target:
+            raise Impossible("You must select an enemy to target.")
+        if target is consumer:
+            raise Impossible("You cannot target yourself.")
+
+        target.ai = components.ai.ConfusedEnemy(entity = target, previous_ai = target.ai, turns = self.turns)
+        self.engine.event_handler.close_menu()
+        self.consume()

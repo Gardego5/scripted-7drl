@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Optional, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING, Callable, Tuple
 
 import tcod.event
 from tcod import Console
@@ -213,7 +213,8 @@ class InventoryEventHandler (Menu):
         elif event.sym in keybinds.INV_DROP_KEY and self.active_window is self.inventory_window:
             action = DropItem(self.player, self.active_window.selected_item)
         elif event.sym in keybinds.INV_USE_KEY and self.active_window is self.inventory_window:
-            action = ItemAction(self.player, self.active_window.selected_item)
+            action = self.inventory_window.selected_item.consumable.get_action(self.engine.player)
+            # ItemAction(self.player, self.active_window.selected_item)
         
         return action
 
@@ -269,3 +270,15 @@ class SelectHandler (Menu):
 class LookHandler (SelectHandler):
     def on_index_selected(self, pos: Tuple[int, int]) -> None:
         self.close_menu()
+
+
+class RangedAttackSelector (SelectHandler):
+    # Allows selecting a tile. If there are qualms about the tile selected, request a new tile. 
+    # If a suitable tile is found, 
+    def __init__(self, previous: EventHandler, callback: Callable[[Tuple[int, int]], Action]):
+        super().__init__(previous)
+
+        self.callback = callback
+    
+    def on_index_selected(self, pos: Tuple[int, int]) -> Optional[Action]:
+        return self.callback(self.engine.camera.console_to_game_map(pos))
