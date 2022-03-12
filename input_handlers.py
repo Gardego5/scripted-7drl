@@ -107,6 +107,12 @@ class Menu (EventHandler):
         """By default any mouse click exits this input handler."""
         return self.on_exit()
 
+    def on_render(self, console: Console):
+        if self.previous:
+            self.previous.on_render(console)
+        else:
+            MainGameEventHandler.on_render(self, console)
+
     def on_exit(self) -> Optional[ActionOrHandler]:
         """Called when the user is trying to exit or cancel an action.
         Returns previous if it was given, otherwise returns to MainGameEventHandler.
