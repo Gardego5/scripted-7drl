@@ -13,6 +13,8 @@ cyan                        = 0x00, 0xFF, 0xFF
 blue                        = 0x00, 0x00, 0xFF
 magenta                     = 0xFF, 0x00, 0xFF
 
+bright_orange               = 0xFF, 0xAC, 0x1C
+
 #         UI Colors         # ####  ####  ####
 ui_main                     = gray_85
 ui_subdued                  = gray_50

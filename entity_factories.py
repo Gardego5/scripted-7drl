@@ -46,6 +46,11 @@ confusion_scroll = Item(
     consumable=consumable.ConfusionConsumable(10),
 )
 
+fireball_scroll = Item(
+    char="~", color=color.bright_orange, name="Fireball Scroll",
+    consumable=consumable.FireballDamageConsumable(9, 3),
+)
+
 bag = Item(
     char=chr(0xC5), color=(190, 150, 230), name="Bag",
     inventory = Inventory(3),
@@ -53,7 +58,7 @@ bag = Item(
 
 for i in range(3): health_potion.spawn().container = bag.inventory
 bag.spawn().container = player.inventory
-confusion_scroll.spawn().container = player.inventory
+fireball_scroll.spawn().container = player.inventory
 
 enemies = {
     0.3: scientist,
@@ -64,5 +69,6 @@ items = {
     0.6: health_potion,
     0.3: bag,
     0.2: lightning_scroll,
-    1.5: confusion_scroll,
+    0.2: confusion_scroll,
+    1.5: fireball_scroll,
 }

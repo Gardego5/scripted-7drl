@@ -285,3 +285,24 @@ class RangedAttackSelector (SelectHandler):
     
     def on_index_selected(self, pos: Tuple[int, int]) -> Optional[Action]:
         return self.callback(self.engine.camera.console_to_game_map(pos))
+
+
+class AreaRangedAttackSelector (RangedAttackSelector):
+    def __init__(self, previous: EventHandler, callback: Callable[[Tuple[int, int]], Action], radius: int) -> None:
+        super().__init__(previous, callback)
+        
+        self.radius = radius
+    
+    def on_render(self, console: Console) -> None:
+        super().on_render(console)
+
+        x, y = self.engine.mouse_location
+
+        console.draw_frame(
+            x=x - self.radius - 1,
+            y=y - self.radius - 1,
+            width=self.radius ** 2,
+            height=self.radius ** 2,
+            fg=color.red,
+            clear=False,
+        )
