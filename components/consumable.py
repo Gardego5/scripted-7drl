@@ -33,6 +33,7 @@ class Consumable (BaseComponent):
     def activate(self, action: actions.ItemAction) -> None:
         raise NotImplementedError()
 
+
 class HealingConsumable (Consumable):
     def __init__(
         self, 
@@ -110,21 +111,20 @@ class ConfusionConsumable (Consumable):
         super().__init__(uses)
         self.turns = turns
 
-    def get_action(self, consumer: Actor):
+    def get_action(self, consumer: Actor) -> Optional[ItemAction]:
         self.engine.message_log.add_message("Select a target location.", color.needs_target)
         RangedAttackSelector(self.engine.event_handler, lambda pos: ItemAction(consumer, self.entity, pos))
 
     def activate(self, action: ItemAction) -> None:
-        consumer = action.entity
-        target = action.target_actor
-
         if not self.engine.game_map.visible[action.target_pos]:
             raise Impossible("You cannot target an area that you cannot see.")
-        if not target:
+        if not action.target_actor:
             raise Impossible("You must select an enemy to target.")
-        if target is consumer:
+        if action.target_actor is action.entity:
             raise Impossible("You cannot target yourself.")
 
-        target.ai = components.ai.ConfusedEnemy(entity = target, previous_ai = target.ai, turns = self.turns)
+        action.target_actor.ai = components.ai.ConfusedEnemy(entity = action.target_actor, previous_ai = action.target_actor.ai, turns = self.turns)
+        self.engine.event_handler.close_menu()
+        self.consume()
         self.engine.event_handler.close_menu()
         self.consume()

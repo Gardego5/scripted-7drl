@@ -238,7 +238,7 @@ class SelectHandler (Menu):
         super().__init__(previous)
         self.engine.mouse_location = self.engine.camera.game_map_to_console(self.engine.player.pos)
     
-    def on_render(self, console: tcod.Console) -> None:
+    def on_render(self, console: Console) -> None:
         self.main_game.on_render(console)
         console.rgb["bg"][self.engine.mouse_location] = color.white
         console.rgb["fg"][self.engine.mouse_location] = color.black
@@ -263,6 +263,9 @@ class SelectHandler (Menu):
         elif event.sym in keybinds.QUIT_KEYS:
             self.close_menu()
 
+    def ev_mousebuttondown(self, event: tcod.event.MouseButtonDown) -> None:
+        return self.on_index_selected(self.engine.mouse_location)
+
     def on_index_selected(self, pos: Tuple[int, int]) -> Optional[Action]:
         raise NotImplementedError()
 
@@ -275,7 +278,7 @@ class LookHandler (SelectHandler):
 class RangedAttackSelector (SelectHandler):
     # Allows selecting a tile. If there are qualms about the tile selected, request a new tile. 
     # If a suitable tile is found, 
-    def __init__(self, previous: EventHandler, callback: Callable[[Tuple[int, int]], Action]):
+    def __init__(self, previous: EventHandler, callback: Callable[[Tuple[int, int]], Action]) -> None:
         super().__init__(previous)
 
         self.callback = callback
