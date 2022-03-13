@@ -12,7 +12,7 @@ from engine import Engine
 import entity_factories
 import input_handlers
 import keybinds
-from procgen import generate_dungeon
+from game_map import GameWorld
 
 
 def new_game() -> Engine:
@@ -23,8 +23,8 @@ def new_game() -> Engine:
 
     engine = Engine(player)
 
-    engine.game_map = generate_dungeon(map_width, map_height, engine=engine)
-
+    engine.game_world = GameWorld(engine, map_width, map_height, False)
+    engine.game_world.generate_floor()
     engine.update_fov()
     
     engine.message_log.add_message("You boot up.", color.welcome_text)

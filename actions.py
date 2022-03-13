@@ -143,3 +143,25 @@ class PickupAction (Action):
 class DropItem (ItemAction):
     def perform(self) -> None:
         self.item.container.drop(self.item, self.entity.pos)
+
+
+class StairsAction (Action):
+    def perform(self) -> None:
+        if self.entity.pos == self.engine.game_map.down_stairs:
+            # Generate a new floor, if it hasn't been generated yet.
+            if self.engine.game_world.game_maps[-1] is self.engine.game_map:
+                self.engine.game_world.generate_floor()
+
+            self.engine.message_log.add_message("You decend the staircase.", color.stairs)
+
+            self.engine.game_world.current_floor_num += 1
+            self.engine.player.place(self.engine.game_world.current_floor.up_stairs, self.engine.game_world.current_floor)
+            self.engine.game_map = self.engine.game_world.current_floor
+        elif self.entity.pos == self.engine.game_map.up_stairs:
+            self.engine.message_log.add_message("You ascend the staircase.", color.stairs)
+            
+            self.engine.game_world.current_floor_num -= 1
+            self.engine.player.place(self.engine.game_world.current_floor.down_stairs, self.engine.game_world.current_floor)
+            self.engine.game_map = self.engine.game_world.current_floor
+        else:
+            raise exceptions.Impossible("There are no stairs here.")

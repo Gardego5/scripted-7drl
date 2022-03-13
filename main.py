@@ -45,10 +45,11 @@ def main() -> None:
                 except Exception:
                     traceback.print_exc()  # Print to stderr.
                     engine.message_log.add_message(traceback.format_exc(), color.error)  # Print to message log.
-        except exceptions.QuitWithoutSaving:
-            return
         except SystemExit or BaseException:
-            save_game(handler)
+            try:
+                if handler.engine.player.is_alive:
+                    save_game(handler)
+            except AttributeError: pass
             raise
 
 

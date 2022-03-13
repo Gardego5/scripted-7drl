@@ -91,5 +91,24 @@ class GameMap:
 class GameWorld:
     def __init__(
         self,
-    ):
-        pass
+        engine: Engine,
+        map_height: int, map_width: int,
+        fog: bool = True,
+    ) -> None:
+        self.engine = engine
+
+        self.map_width, self.map_height = map_width, map_height
+        self.fog = fog
+
+        self.game_maps = []
+        self.current_floor_num = 0
+
+    @property
+    def current_floor(self):
+        return self.game_maps[self.current_floor_num]
+
+    def generate_floor(self) -> None:
+        from procgen import generate_dungeon
+
+        self.game_maps.append(generate_dungeon(self.map_width, self.map_height, self.engine, len(self.game_maps)))
+        self.game_maps[-1].fog = self.fog

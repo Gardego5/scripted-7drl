@@ -94,8 +94,12 @@ class Entity:
     def game_map(self, game_map: GameMap) -> None:
         if hasattr(self, "parent"):
             if hasattr(self.parent, "entities"):
+                print("hi1")
+                if hasattr(self, "hardware"): print(len(self.game_map.entities))
                 self.parent.entities.remove(self)
+                if hasattr(self, "hardware"): print(len(self.game_map.entities))
             elif hasattr(self.parent, "items"):
+                print("hi2")
                 self.parent.items.remove(self)
         self.parent = game_map
         self.parent.entities.add(self)

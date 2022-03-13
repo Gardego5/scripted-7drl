@@ -111,7 +111,8 @@ def place_stairs(
 # TODO: Parameterize generate dungeon. 
 def generate_dungeon(
     map_width: int, map_height: int,
-    engine: engine,
+    engine: Engine,
+    floor_num: int,
 ) -> GameMap:
     player = engine.player
 
@@ -130,11 +131,15 @@ def generate_dungeon(
         else:
             simple_structures.append(structure)
 
-    place_stairs(simple_structures, dungeon)
-
     for structure in simple_structures:
         place_entities(structure, dungeon)
 
-    place_an_entity_randomly(random.choice(simple_structures), dungeon, player)
+    place_stairs(simple_structures, dungeon)  # Always place down stairs.
+
+    if not floor_num:  # If this is the first floor, place the player in it, and set it to the current game_map.
+        place_an_entity_randomly(random.choice(simple_structures), dungeon, player)
+        engine.game_map = dungeon
+    else:  # If this is not the first floor, add an up stairs.
+        place_stairs(simple_structures, dungeon, True)
 
     return dungeon

@@ -6,7 +6,7 @@ from typing import Optional, TYPE_CHECKING, Callable, Tuple, Union
 import tcod.event
 from tcod import Console
 
-from actions import Action, BumpAction, WaitAction, PickupAction, DropItem, ItemAction
+import actions
 from inventory_window import HardwareWindow, InventoryWindow, SoftwareWindow
 import keybinds
 import color
@@ -18,21 +18,21 @@ if TYPE_CHECKING:
     from entity import Actor
 
 
-ActionOrHandler = Union[Action, "BaseEventHandler"]
+ActionOrHandler = Union[actions.Action, "BaseEventHandler"]
 
 
-class BaseEventHandler (tcod.event.EventDispatch[Action]):
+class BaseEventHandler (tcod.event.EventDispatch[actions.Action]):
     def handle_events(self, event: tcod.event.Event) -> BaseEventHandler:
         state = self.dispatch(event)
         if isinstance(state, BaseEventHandler):
             return state
-        assert not isinstance(state, Action), f"{self!r} cannot handle actions."
+        assert not isinstance(state, actions.Action), f"{self!r} cannot handle actions."
         return self
     
     def on_render(self, console: Console) -> None:
         raise NotImplementedError()
 
-    def ev_quit(self, event: tcod.event.Quit()) -> Optional[Action]:
+    def ev_quit(self, event: tcod.event.Quit()) -> Optional[actions.Action]:
         raise SystemExit()
 
 
@@ -52,7 +52,7 @@ class EventHandler (BaseEventHandler):
             return MainGameEventHandler(self.engine)
         return self
 
-    def handle_action(self, action: Optional[Action]) -> bool:
+    def handle_action(self, action: Optional[actions.Action]) -> bool:
         # Handles actions returned from event methods.
         # Will return true if advances a turn.
         if action is None:
@@ -128,12 +128,15 @@ class MainGameEventHandler (EventHandler):
     def ev_keydown(self, event: tcod.event.KeyDown) -> Optional[ActionOrHandler]:
         if event.sym in keybinds.QUIT_KEYS:
             raise SystemExit()
+        if (event.sym in {tcod.event.K_PERIOD, tcod.event.K_COMMA} and event.mod 
+            and (tcod.event.KMOD_LSHIFT or tcod.event.KMOD_RSHIFT)):
+            return actions.StairsAction(self.player)
         if event.sym in keybinds.MOVE_KEYS:
-            return BumpAction(self.player, keybinds.MOVE_KEYS[event.sym])
+            return actions.BumpAction(self.player, keybinds.MOVE_KEYS[event.sym])
         if event.sym in keybinds.HISTORY_VIEWER_KEYS:
             return HistoryViewer(self.engine)
         if event.sym in keybinds.PICKUP_KEY:
-            return PickupAction(self.player)
+            return actions.PickupAction(self.player)
         if event.sym in keybinds.INVENTORY_KEY:
             return InventoryEventHandler(self.engine)
         if event.sym in keybinds.LOOK_VIEWER_KEY:
@@ -260,7 +263,7 @@ class InventoryEventHandler (Menu):
         elif event.sym in keybinds.QUIT_KEYS:
             return self.on_exit()
         elif event.sym in keybinds.INV_DROP_KEY and self.active_window is self.inventory_window:
-            return DropItem(self.player, self.active_window.selected_item)
+            return actions.DropItem(self.player, self.active_window.selected_item)
         elif event.sym in keybinds.INV_USE_KEY and self.active_window is self.inventory_window:
             if hasattr(self.inventory_window.selected_item, "consumable"):
                 return self.inventory_window.selected_item.consumable.get_action(self.engine.player)
@@ -327,7 +330,7 @@ class LookHandler (SelectHandler):
 class RangedAttackSelector (SelectHandler):
     # Allows selecting a tile. If there are qualms about the tile selected, request a new tile. 
     # If a suitable tile is found, 
-    def __init__(self, engine: Engine, callback: Callable[[Tuple[int, int]], Action]) -> None:
+    def __init__(self, engine: Engine, callback: Callable[[Tuple[int, int]], actions.Action]) -> None:
         super().__init__(engine)
 
         self.callback = callback
@@ -337,7 +340,7 @@ class RangedAttackSelector (SelectHandler):
 
 
 class AreaRangedAttackSelector (RangedAttackSelector):
-    def __init__(self, engine: Engine, callback: Callable[[Tuple[int, int]], Action], radius: int) -> None:
+    def __init__(self, engine: Engine, callback: Callable[[Tuple[int, int]], actions.Action], radius: int) -> None:
         super().__init__(engine, callback)
         
         self.radius = radius

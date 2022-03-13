@@ -11,7 +11,7 @@ from tcod.map import compute_fov
 
 from actions import MovementAction
 from entity import Actor, Camera
-from game_map import GameMap
+from game_map import GameMap, GameWorld
 from message_log import MessageLog
 from render_functions import render_health_bar, render_names_at_mouse_location
 from inventory_window import InventoryWindow
@@ -24,6 +24,7 @@ if TYPE_CHECKING:
 
 class Engine:
     game_map: GameMap
+    game_world: GameWorld
 
     def __init__(
         self,
