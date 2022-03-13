@@ -146,12 +146,9 @@ class MainGameEventHandler (EventHandler):
 
 
 class GameOverEventHandler (EventHandler):
-    def ev_quit(self, event: tcod.event.Quit()):
-        raise exceptions.QuitWithoutSaving()
-
     def ev_keydown(self, event: tcod.event.KeyDown) -> None:
         if event.sym in keybinds.QUIT_KEYS:
-            raise exceptions.QuitWithoutSaving()
+            raise SystemExit()
         elif event.sym in keybinds.HISTORY_VIEWER_KEYS:
             return HistoryViewer(self.engine)
 
@@ -208,6 +205,7 @@ class InventoryEventHandler (Menu):
             "Hardware": self.hardware_window,
             "Inventory": self.inventory_window,
             "Software": self.software_window,
+            "No Window": None,
         }
         return windows[self.window]
 
@@ -261,7 +259,10 @@ class InventoryEventHandler (Menu):
             else:
                 self.cursor = max(0, min(self.cursor + adjust, len(self.active_window.listings) - 1))
         elif event.sym in keybinds.QUIT_KEYS:
-            return self.on_exit()
+            if self.window == "No Window":
+                return self.on_exit()
+            else:
+                self.window = "No Window"
         elif event.sym in keybinds.INV_DROP_KEY and self.active_window is self.inventory_window:
             return actions.DropItem(self.player, self.active_window.selected_item)
         elif event.sym in keybinds.INV_USE_KEY and self.active_window is self.inventory_window:
@@ -271,11 +272,14 @@ class InventoryEventHandler (Menu):
             return None
 
     def ev_mousebuttondown(self, event: tcod.event.MouseButtonDown) -> Optional[ActionOrHandler]:
+        found_window = False
+
         for i_window in [self.hardware_window, self.inventory_window, self.software_window]:
             try:
                 # If you clicked on a selectable item, then select that item in that window.
                 item, cursor = i_window.hover_zones(self.engine.mouse_location)
                 self.cursor, self.window = cursor, i_window.title
+                found_window = True
             except exceptions.OutOfWindow:
                 # Do nothing if you didn't click in a window.
                 pass
@@ -283,6 +287,9 @@ class InventoryEventHandler (Menu):
                 # If you didn't click on a selectable item, but within a window, select the window,
                 # but keep the selected item of that window the same.
                 self.cursor, self.window = i_window.cursor, i_window.title
+                found_window = True
+        if not found_window:
+            self.window = "No Window"
 
 
 class SelectHandler (Menu):

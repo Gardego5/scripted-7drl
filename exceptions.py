@@ -10,10 +10,6 @@ class OutOfWindow (Exception):
     pass
 
 
-class QuitWithoutSaving (SystemExit):
-    # Can be raised to exit the game without automatically saving.
-    pass
-
 class GenerationException (Exception):
     # Raised when generation takes to long on a step.
     pass

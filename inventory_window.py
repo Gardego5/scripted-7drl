@@ -95,6 +95,11 @@ class InventoryWindow:
             else:
                 console.print(self.x, self.y + i, listing, fg = item.color, bg = color.ui_bg)
 
+        # Selection Indicator in top right.
+        if cursor is not None:
+            console.print(self.x + self.width - 2, self.y - 1, chr(0x2550) + chr(0x2500) + chr(0x2557), fg = color.selected_window)
+            console.print(self.x + self.width, self.y, chr(0x2502) + "\n" + chr(0x2551), fg = color.selected_window)
+
 
 class SoftwareWindow (InventoryWindow):
     x, y, width, height = 39, 3, 23, 34
@@ -102,7 +107,7 @@ class SoftwareWindow (InventoryWindow):
 
 
 class HardwareWindow (InventoryWindow):
-    x, y, width, height = 5, 5, 29, 21
+    x, y, width, height = 3, 3, 33, 25
     title = "Hardware"
     item_zones = {
         ( 8,  6): 0,
@@ -221,3 +226,8 @@ class HardwareWindow (InventoryWindow):
                 console.print(*device.pos, installed_device.char, fg = installed_device.color, bg = bg)
             else:
                 console.print(*device.pos, device.char, fg = device.color, bg = bg)
+
+        # Selection Indicator in top right.
+        if cursor is not None:
+            console.print(self.x + self.width - 2, self.y - 1, chr(0x2550) + chr(0x2500) + chr(0x2557), fg = color.selected_window)
+            console.print(self.x + self.width, self.y, chr(0x2502) + "\n" + chr(0x2551), fg = color.selected_window)

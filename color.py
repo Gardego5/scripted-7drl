@@ -29,6 +29,8 @@ menu_title                  = 0xFF, 0xFF, 0x20
 menu_text                   = white
 menu_author                 = gray_15
 
+selected_window             = 0xFF, 0xD9, 0x66
+
 hp_bar_text                 = black
 hp_bar_filled               = 0xE1, 0xF0, 0x9E
 hp_bar_empty                = 0xFC, 0xFF, 0xF0
