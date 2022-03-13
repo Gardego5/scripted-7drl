@@ -198,7 +198,7 @@ class InventoryEventHandler (Menu):
         super().__init__(engine)
         self.cursor = 0
         self.window = "Inventory"
-        self.hardware_window = HardwareWindow(self.player.hardware)
+        self.hardware_window = HardwareWindow(self.player.fighter._inventory)
         self.inventory_window = InventoryWindow(self.player.inventory)
         self.software_window = SoftwareWindow(self.player.software)
 

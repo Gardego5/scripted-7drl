@@ -1,14 +1,16 @@
 from __future__ import annotations
 
 import copy
-from typing import Union, Optional, Tuple, TypeVar, TYPE_CHECKING
+from typing import Set, Union, Optional, Tuple, TypeVar, TYPE_CHECKING
 
 from tcod import Console
 
 from render_order import RenderOrder
 from components.ai import HostileEnemy
-from components.inventory import Inventory
+from components.inventory import Inventory, TypedInventory
+from components.equipable import Equipable
 import calculator
+import color
 
 if TYPE_CHECKING:
     from components.ai import BaseAI
@@ -26,6 +28,7 @@ import calculator
 class Entity:
     parent: Union[GameMap, Inventory]
     description: str = ""
+    droppable: bool = True
     # A generic object to represent players, enemies, items, etc.
     def __init__(
         self,
@@ -37,6 +40,9 @@ class Entity:
         blocks_movement: bool = False,
         render_order: RenderOrder = RenderOrder.CORPSE,
         inventory: Optional[Inventory] = None,
+        flags: Set[str] = {},
+        description: str = "",
+        droppable: bool = True,
     ) -> None:
         self.pos = pos
         self.char = char
@@ -46,6 +52,9 @@ class Entity:
         self.render_order = render_order
         if parent: self.parent = parent
         if inventory: self.inventory = inventory
+        self.flags = flags
+        self.description = description
+        self.droppable = droppable
     
     @property
     def x(self) -> int:
@@ -162,6 +171,9 @@ class Actor (Entity):
         ai_cls: Type[BaseAI],
         fighter: Fighter,
         inventory: Optional[Inventory] = None,
+        flags: Set[str] = {},
+        description: str = "",
+        droppable: bool = True,
     ) -> None:
         super().__init__(
             parent = parent,
@@ -172,6 +184,9 @@ class Actor (Entity):
             blocks_movement = blocks_movement,
             render_order = RenderOrder.ACTOR,
             inventory = inventory,
+            flags = flags,
+            description = description,
+            droppable = droppable,
         )
         self.ai: Optional[BaseAI] = ai_cls(self)
 
@@ -212,8 +227,7 @@ class Player (Actor):
             inventory = inventory,
             fighter = fighter,
         )
-        
-        self.hardware = Inventory(16)
+
         self.software = Inventory(3)
 
 
@@ -228,6 +242,10 @@ class Item (Entity):
         name: str = "<Unnamed>",
         consumable: Consumable = None,
         inventory: Optional[Inventory] = None,
+        equipable: Optional[Equipable] = None,
+        flags: Set[str] = {},
+        description: str = "",
+        droppable: bool = True,
     ) -> None:
         super().__init__(
             parent = parent,
@@ -238,11 +256,14 @@ class Item (Entity):
             blocks_movement = False,
             render_order = RenderOrder.ITEM,
             inventory = inventory,
+            flags = flags,
+            description = description,
+            droppable = droppable,
         )
 
-        if consumable:
-            self.consumable = consumable
-            self.consumable.entity = self
+        if consumable: self.consumable = consumable
+        if equipable: self.equipable = equipable
+
     
     @property
     def consumable(self) -> Consumable:
@@ -251,13 +272,50 @@ class Item (Entity):
     def consumable(self, consumable) -> None:
         self._consumable = consumable
         self._consumable.entity = self
+    
+    @property
+    def equipable(self) -> Equipable:
+        return self._equipable
+    @equipable.setter
+    def equipable(self, equipable) -> None:
+        self._equipable = equipable
+        self._equipable.entity = self
+
+
+class ItemSlot (Item):
+    def __init__(
+        self,
+        parent: Optional[Inventory] = None,
+        pos: Tuple[int, int] = (0, 0),
+        char: str = "=",
+        color: Tuple[int, int, int] = color.ui_subdued,
+        name: str = "<Unnamed ItemSlot>",
+        reqs: set = {},
+        description: str = "",
+    ) -> None:
+        super().__init__(
+            parent = parent,
+            pos = pos,
+            char = char,
+            color = color,
+            name = name,
+            description = description,
+            droppable = False,
+        )
+        
+        self.inventory = TypedInventory(1, reqs)
 
 
 class Camera (Entity):
     # A helper Entity, not usually rendered, used for math to center the
     # game map on the console. Keeps track of its current console and updates
     # its console whenever it is passed a new one.
-    def __init__(self, pos: Tuple[int, int] = None, entity: Optional[Entity] = None, console: Optional[Console] = None):
+    def __init__(
+        self,
+        pos: Tuple[int, int] = None,
+        entity: Optional[Entity] = None,
+        console: Optional[Console] = None
+    ) -> None:
         super().__init__(pos=pos, char="&", color=(240, 100, 100), name="<Camera>")
         self.entity = entity
         self.console = console

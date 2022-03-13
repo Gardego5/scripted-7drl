@@ -6,11 +6,12 @@ import factories.dev
 
 # Player
 player = Player(
-    fighter=Fighter(hp=800, defence=1, power=5),
+    fighter=Fighter(
+        hp=800, defence=1, power=5, 
+        equipment=Inventory(factories.dev.hardware)
+    ),
     inventory=Inventory(20),
 )
-for device in factories.dev.hardware:
-    device.container = player.hardware
 for device in factories.dev.software:
     device.container = player.software
 

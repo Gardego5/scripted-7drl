@@ -43,7 +43,6 @@ class InventoryWindow:
             else:
                 return "", None
 
-
     @property
     def selected_item(self) -> Item:
         return self.selected_listing[1]
@@ -181,8 +180,18 @@ class HardwareWindow (InventoryWindow):
     }
 
     @property
+    def selected_item(self) -> Item:
+        return self.selected_listing[1]
+
+    @property
     def listings(self) -> Iterable[Tuple[str, Item]]:
-        return [(item.inventory.items[0].name, item.inventory.items[0]) if len(item.inventory.items) else (item.name, item) for item in self.inventory.items]
+        listings = []
+        for item in self.inventory.items:
+            if len(item.inventory.items):
+                listings.append((item.inventory.items[0].name, item.inventory.items[0]))
+            else:
+                listings.append((item.name, item))
+        return listings
 
     def hover_zones(self, pos: Tuple[int, int]) -> Tuple[Item, int]:
         # Returns the item under the position and it's position in the listings.
