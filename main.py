@@ -44,7 +44,7 @@ def main() -> None:
                         handler = handler.handle_events(event)
                 except Exception:
                     traceback.print_exc()  # Print to stderr.
-                    engine.message_log.add_message(traceback.format_exc(), color.error)  # Print to message log.
+                    handler.engine.message_log.add_message(traceback.format_exc(), color.error)  # Print to message log.
         except SystemExit or BaseException:
             try:
                 if handler.engine.player.is_alive:

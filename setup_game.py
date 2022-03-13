@@ -23,7 +23,7 @@ def new_game() -> Engine:
 
     engine = Engine(player)
 
-    engine.game_world = GameWorld(engine, map_width, map_height, False)
+    engine.game_world = GameWorld(engine, map_width, map_height)
     engine.game_world.generate_floor()
     engine.update_fov()
     
