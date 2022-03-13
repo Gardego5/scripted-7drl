@@ -1,34 +1,7 @@
-from components.ai import HostileEnemy
-from components.fighter import Fighter
 from components import consumable
 from components.inventory import Inventory
-from entity import Actor, Item, Player
-import dev
+from entity import Item
 import color
-
-# Player
-player = Player(
-    fighter=Fighter(hp=800, defence=1, power=5),
-    inventory=Inventory(20),
-)
-for device in dev.hardware:
-    device.container = player.hardware
-for device in dev.software:
-    device.container = player.software
-
-# Enemies
-scientist = Actor(
-    char="S", color=(200, 255, 200), name="Scientist", 
-    blocks_movement=True, ai_cls=HostileEnemy, 
-    fighter=Fighter(hp=8, defence=1, power=2),
-    inventory=Inventory(3),
-)
-janitor = Actor(
-    char="J", color=(179, 113, 55), name="Janitor", 
-    blocks_movement=True, ai_cls=HostileEnemy, 
-    fighter=Fighter(hp=13, defence=1, power=4),
-    inventory=Inventory(3)
-)
 
 # Items
 health_potion = Item(
@@ -56,16 +29,10 @@ bag = Item(
     inventory = Inventory(3),
 )
 
+# Composed Item Configuration
 for i in range(3): health_potion.spawn().container = bag.inventory
-bag.spawn().container = player.inventory
-fireball_scroll.spawn().container = player.inventory
 
-enemies = {
-    0.3: scientist,
-    0.7: janitor,
-}
-
-items = {
+distribution = {
     0.6: health_potion,
     0.3: bag,
     0.2: lightning_scroll,

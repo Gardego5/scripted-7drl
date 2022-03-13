@@ -9,7 +9,7 @@ import tcod
 
 import color
 from engine import Engine
-import entity_factories
+import factories.entity
 import input_handlers
 import keybinds
 from game_map import GameWorld
@@ -19,7 +19,7 @@ def new_game() -> Engine:
     map_width = 80
     map_height = 80
 
-    player = entity_factories.player.spawn()
+    player = factories.entity.player.spawn()
 
     engine = Engine(player)
 
