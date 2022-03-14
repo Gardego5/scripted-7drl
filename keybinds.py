@@ -60,6 +60,7 @@ MOVE_MODIFIER_KEYS = {
 CURSOR_BEGINNING_KEYS = { tcod.event.K_HOME }
 CURSOR_END_KEYS = { tcod.event.K_END }
 CURSOR_SELECT_KEYS = { tcod.event.K_RETURN }
+WINDOW_TAB_KEY = { tcod.event.K_TAB }
 
 # Keybinds for InventoryEventHandler
 INV_DROP_KEY = { tcod.event.K_d }

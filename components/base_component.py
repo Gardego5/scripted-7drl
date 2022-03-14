@@ -7,6 +7,7 @@ if TYPE_CHECKING:
     from entity import Entity
 
 class BaseComponent:
+    description: str = ""
     entity: Entity
 
     @property

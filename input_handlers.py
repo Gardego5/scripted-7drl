@@ -197,7 +197,7 @@ class InventoryEventHandler (Menu):
         self.window = "Inventory"
         self.hardware_window = HardwareWindow(self.player.fighter._inventory)
         self.inventory_window = InventoryWindow(self.player.inventory)
-        self.software_window = SoftwareWindow(self.player.software)
+        self.software_window = SoftwareWindow(self.player.active, self.player.passive, self.player.storage)
 
     @property
     def active_window(self):
@@ -208,6 +208,16 @@ class InventoryEventHandler (Menu):
             "No Window": None,
         }
         return windows[self.window]
+
+    def change_window(self):
+        windows = ["Hardware", "Inventory", "Software"]
+        if self.window in windows:
+            for i, window in enumerate(windows):
+                if self.window == window:
+                    self.window = windows[i - 1]
+                    return
+        else:
+            self.window = "Inventory"
 
     def on_render(self, console: Console) -> None:
         super().on_render(console)
@@ -267,12 +277,16 @@ class InventoryEventHandler (Menu):
                 return self.on_exit()
             else:
                 self.window = "No Window"
+                return
         elif event.sym in keybinds.INV_DROP_KEY and self.active_window is self.inventory_window:
             return actions.DropItem(self.player, self.active_window.selected_item)
-        elif event.sym in keybinds.INV_USE_KEY and self.active_window is self.inventory_window:
+        elif event.sym in keybinds.INV_USE_KEY and self.active_window in [self.inventory_window, self.software_window]:
             if hasattr(self.inventory_window.selected_item, "consumable"):
                 return self.inventory_window.selected_item.consumable.get_action(self.engine.player)
             self.engine.message_log.add_message("You can not use this item that way.", color.impossible)
+            return None
+        elif event.sym in keybinds.WINDOW_TAB_KEY:
+            self.change_window()
             return None
 
     def ev_mousebuttondown(self, event: tcod.event.MouseButtonDown) -> Optional[ActionOrHandler]:

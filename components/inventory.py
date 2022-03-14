@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, Tuple, TYPE_CHECKING, Union
+from typing import List, Tuple, TYPE_CHECKING, Union, Callable
 
 from components.base_component import BaseComponent
 import exceptions
@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 class Inventory (BaseComponent):
     entity: Entity
 
-    def __init__(self, initialize: Union[int, List[Item]]):
+    def __init__(self, initialize: Union[int, List[Item]]) -> None:
         self.items: List[Item] = []
         if isinstance(initialize, int):
             self.capacity = initialize
@@ -37,11 +37,14 @@ class Inventory (BaseComponent):
         del item.parent
     
     def add(self, item: Item) -> None:
-        item.container = self
+        if len(self.items) < self.capacity:
+            item.container = self
+        else:
+            raise exceptions.Impossible("Not enough space")
 
 
 class TypedInventory (Inventory):
-    def __init__(self, initialize: Union[int, List[Item]], reqs: set):
+    def __init__(self, initialize: Union[int, List[Item]], reqs: set) -> None:
         super().__init__(initialize)
 
         self.reqs = reqs
@@ -53,3 +56,14 @@ class TypedInventory (Inventory):
                 return
 
         raise exceptions.Impossible(f"You cannot put {item.name} in {self.name}.")
+
+
+class DynamicInventory (TypedInventory):
+    def __init__(self, capacity_func: Callable[[Inventory], int], reqs: set) -> None:
+        self.items: List[Item] = []
+        self.capacity_func = capacity_func
+        self.reqs = reqs
+    
+    @property
+    def capacity(self) -> int:
+        return self.capacity_func(self)

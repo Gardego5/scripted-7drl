@@ -7,7 +7,7 @@ from tcod import Console
 
 from render_order import RenderOrder
 from components.ai import HostileEnemy
-from components.inventory import Inventory, TypedInventory
+from components.inventory import Inventory, TypedInventory, DynamicInventory
 from components.equipable import Equipable
 import calculator
 import color
@@ -214,7 +214,7 @@ class Player (Actor):
         parent: Optional[Union[GameMap, Inventory]] = None,
         pos: Tuple[int, int] = (0, 0),
         fighter: Fighter,
-        inventory: Optional[Inventory] = None,
+        inventory: Inventory,
     ) -> None:
         super().__init__(
             parent = parent,
@@ -228,7 +228,12 @@ class Player (Actor):
             fighter = fighter,
         )
 
-        self.software = Inventory(3)
+        self.active = DynamicInventory([], lambda inv: sum([eq.equipable.cpu_threads for eq in inv.parent.fighter.equipment]))
+        self.active.parent, self.active.name, self.active.description = self, "Active Programs", "Your active programs. Can be activated to create a strong effect. Has limited uses. Number limited by your CPU."
+        self.passive = DynamicInventory([], lambda inv: sum([eq.equipable.apu_threads for eq in inv.parent.fighter.equipment]))
+        self.passive.parent, self.passive.name, self.passive.description = self, "Passive Programs", "Your passive programs. Provide continuous effect while running. Number Limited by your APU."
+        self.storage = DynamicInventory([], lambda inv: sum([eq.equipable.data_storage for eq in inv.parent.fighter.equipment]))
+        self.storage.parent, self.storage.name, self.storage.description = self, "Stored Programs", "Inactive programs stored in memory. The number of programs you can store depends on how much software storage you have from your data cards."
 
 
 class Item (Entity):

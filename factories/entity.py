@@ -12,8 +12,6 @@ player = Player(
     ),
     inventory=Inventory(20),
 )
-for device in factories.dev.software:
-    device.container = player.software
 
 # Enemies
 scientist = Actor(

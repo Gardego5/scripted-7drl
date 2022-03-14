@@ -13,11 +13,11 @@ import calculator
 
 class InventoryWindow:
     x, y, width, height = 3, 31, 33, 16
+    cursor = 0
     title = "Inventory"
 
     def __init__(self, inventory: Inventory) -> None:
         self.inventory = inventory
-        self.cursor = 0
 
     def _format_listing(self, item: Item, layer: int = 0) -> Iterable[Tuple[str, Item]]:
         formated_listings = []
@@ -91,9 +91,9 @@ class InventoryWindow:
 
         for i, (listing, item) in enumerate(displayed_listings):
             if i == selected:
-                console.print(self.x, self.y + i, listing, fg = item.color, bg = color.ui_bg_highlighted)
+                console.print(self.x, self.y + i, listing, fg = item.color if item else color.ui_main, bg = color.ui_bg_highlighted)
             else:
-                console.print(self.x, self.y + i, listing, fg = item.color, bg = color.ui_bg)
+                console.print(self.x, self.y + i, listing, fg = item.color if item else color.ui_main, bg = color.ui_bg)
 
         # Selection Indicator in top right.
         if cursor is not None:
@@ -104,6 +104,25 @@ class InventoryWindow:
 class SoftwareWindow (InventoryWindow):
     x, y, width, height = 39, 3, 23, 34
     title = "Software"
+
+    def __init__(self, active: Inventory, passive: Inventory, storage: Inventory):
+        self.active = active
+        self.passive = passive
+        self.storage = storage
+    
+    @property
+    def listings(self) -> Iterable[Tuple[str, Optional[Item]]]:
+        listings = []
+        listings.append((self.active.name, None))
+        for script in self.active.items:
+            listings.append(script.name, script)
+        listings.append((self.passive.name, None))
+        for script in self.passive.items:
+            listings.append(script.name, script)
+        listings.append((self.storage.name, None))
+        for script in self.storage.items:
+            listings.append(script.name, script)
+        return listings
 
 
 class HardwareWindow (InventoryWindow):
@@ -192,9 +211,9 @@ class HardwareWindow (InventoryWindow):
     def listings(self) -> Iterable[Tuple[str, Item]]:
         listings = []
         for item in self.inventory.items:
-            if len(item.inventory.items):
+            if len(item.inventory.items):  # List the item in the slot.
                 listings.append((item.inventory.items[0].name, item.inventory.items[0]))
-            else:
+            else:  # List the empty slot if there isn't anything equiped.
                 listings.append((item.name, item))
         return listings
 

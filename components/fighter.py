@@ -22,7 +22,6 @@ class Fighter (BaseComponent):
         equipment: Inventory = None
     ) -> None:
         self.max_hp = hp
-        self._hp = hp
         self.defence = defence
         self.power = power
         self.luck = luck
@@ -30,6 +29,7 @@ class Fighter (BaseComponent):
             self.equipment = equipment
         else:
             self.equipment = Inventory(0)
+        self._hp = hp
 
     @property
     def equipment(self) -> List[Item]:
