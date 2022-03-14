@@ -12,6 +12,7 @@ import keybinds
 import color
 import exceptions
 import render_functions
+import entity
 
 if TYPE_CHECKING:
     from engine import Engine
@@ -261,33 +262,39 @@ class InventoryEventHandler (Menu):
             console.print(64, 25 - i, key_hint, fg=color.ui_very_subdued)
 
     def ev_keydown(self, event: tcod.event.KeyDown) -> Optional[ActionOrHandler]:
-        action = None
-
         # Move the cursor in the selected window, but don't make it out of bounds of the window's listings.
-        if event.sym in keybinds.CURSOR_Y_KEYS and self.window != "No Window":
-            adjust = keybinds.CURSOR_Y_KEYS[event.sym]
-            if adjust < 0 and self.cursor == 0:
-                self.cursor = len(self.active_window.listings) - 1
-            elif adjust > 0 and self.cursor == len(self.active_window.listings) - 1:
-                self.cursor = 0
-            else:
-                self.cursor = max(0, min(self.cursor + adjust, len(self.active_window.listings) - 1))
-        elif event.sym in keybinds.QUIT_KEYS:
-            if self.window == "No Window":
+        if event.sym in keybinds.WINDOW_TAB_KEY:
+            self.change_window()
+            return
+        elif self.window == "No Window":
+            if event.sym in keybinds.QUIT_KEYS:
                 return self.on_exit()
-            else:
+        else:
+            if event.sym in keybinds.CURSOR_Y_KEYS:
+                adjust = keybinds.CURSOR_Y_KEYS[event.sym]
+                if adjust < 0 and self.cursor == 0:
+                    self.cursor = len(self.active_window.listings) - 1
+                elif adjust > 0 and self.cursor == len(self.active_window.listings) - 1:
+                    self.cursor = 0
+                else:
+                    self.cursor = max(0, min(self.cursor + adjust, len(self.active_window.listings) - 1))
+            elif event.sym in keybinds.QUIT_KEYS:
                 self.window = "No Window"
                 return
-        elif event.sym in keybinds.INV_DROP_KEY and self.active_window is self.inventory_window:
-            return actions.DropItem(self.player, self.active_window.selected_item)
-        elif event.sym in keybinds.INV_USE_KEY and self.active_window in [self.inventory_window, self.software_window]:
-            if hasattr(self.inventory_window.selected_item, "consumable"):
-                return self.inventory_window.selected_item.consumable.get_action(self.engine.player)
-            self.engine.message_log.add_message("You can not use this item that way.", color.impossible)
-            return None
-        elif event.sym in keybinds.WINDOW_TAB_KEY:
-            self.change_window()
-            return None
+            elif event.sym in keybinds.INV_DROP_KEY and self.active_window is self.inventory_window:
+                return actions.DropItem(self.player, self.active_window.selected_item)
+            elif event.sym in keybinds.INV_USE_KEY and self.active_window in [self.inventory_window, self.software_window]:
+                if hasattr(self.inventory_window.selected_item, "consumable"):
+                    return self.inventory_window.selected_item.consumable.get_action(self.engine.player)
+                else:
+                    self.engine.message_log.add_message("You can not use this item that way.", color.impossible)
+                    return  # Cannot use impossible exception because not inside action.
+            elif event.sym in keybinds.INV_EQUIP_KEY and self.active_window == self.inventory_window:
+                if hasattr(self.inventory_window.selected_item, "equipable"):
+                    return self.inventory_window.selected_item.equipable.get_action(self.engine.player)
+                else:
+                    self.engine.message_log.add_message("This item cannot be equiped.", color.impossible)
+                    return  # Cannot use impossible exception because not inside action.
 
     def ev_mousebuttondown(self, event: tcod.event.MouseButtonDown) -> Optional[ActionOrHandler]:
         found_window = False
@@ -308,6 +315,39 @@ class InventoryEventHandler (Menu):
                 found_window = True
         if not found_window:
             self.window = "No Window"
+
+
+class SelectInventorySlotHandler (InventoryEventHandler):
+    def __init__(self, engine: Engine, callback: Callable[[entity.Item], actions.Action]) -> None:
+        super().__init__(engine)
+
+        self.callback = callback
+        
+    def ev_keydown(self, event: tcod.event.KeyDown) -> Optional[ActionOrHandler]:
+        # Move the cursor in the selected window, but don't make it out of bounds of the window's listings.
+        if event.sym in keybinds.WINDOW_TAB_KEY:
+            self.change_window()
+            return
+        elif self.window == "No Window":
+            if event.sym in keybinds.QUIT_KEYS:
+                return self.on_exit()
+        else:
+            if event.sym in keybinds.CURSOR_Y_KEYS:
+                adjust = keybinds.CURSOR_Y_KEYS[event.sym]
+                if adjust < 0 and self.cursor == 0:
+                    self.cursor = len(self.active_window.listings) - 1
+                elif adjust > 0 and self.cursor == len(self.active_window.listings) - 1:
+                    self.cursor = 0
+                else:
+                    self.cursor = max(0, min(self.cursor + adjust, len(self.active_window.listings) - 1))
+            elif event.sym in keybinds.QUIT_KEYS:
+                self.window = "No Window"
+                return
+            elif event.sym in keybinds.CURSOR_SELECT_KEYS:
+                return self.on_item_selected(self.active_window.selected_item)
+
+    def on_item_selected(self, item: entity.Item) -> Optional[ActionOrHandler]:
+        return self.callback(item)
 
 
 class SelectHandler (Menu):

@@ -8,7 +8,6 @@ from tcod import Console
 from render_order import RenderOrder
 from components.ai import HostileEnemy
 from components.inventory import Inventory, TypedInventory, DynamicInventory
-from components.equipable import Equipable
 import calculator
 import color
 
@@ -16,6 +15,7 @@ if TYPE_CHECKING:
     from components.ai import BaseAI
     from components.fighter import Fighter
     from components.consumable import Consumable
+    from components.equipable import Equipable
     from game_map import GameMap
 
 T = TypeVar("T", bound="Entity")

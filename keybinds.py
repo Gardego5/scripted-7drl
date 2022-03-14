@@ -65,4 +65,4 @@ WINDOW_TAB_KEY = { tcod.event.K_TAB }
 # Keybinds for InventoryEventHandler
 INV_DROP_KEY = { tcod.event.K_d }
 INV_USE_KEY = { tcod.event.K_u }
-INV_INSTALL_KEY = { tcod.event.K_i }
+INV_EQUIP_KEY = { tcod.event.K_e }

@@ -111,10 +111,7 @@ class ItemAction (Action):
         return self.engine.game_map.get_actor_at_location(self.target_pos)
     
     def perform(self) -> None:
-        if hasattr(self.item, "consumable"):
-            self.item.consumable.activate(self)
-        else:
-            raise exceptions.Impossible("This item is not consumable.")
+        self.item.consumable.activate()
 
 
 class PickupAction (Action):
@@ -143,6 +140,15 @@ class PickupAction (Action):
 class DropItem (ItemAction):
     def perform(self) -> None:
         self.item.container.drop(self.item, self.entity.pos)
+
+
+class EquipItem (ItemAction):
+    def __init__(self, entity, item, slot) -> None:
+        super().__init__(entity, item)
+        self.slot = slot
+
+    def perform(self) -> None:
+        self.item.equipable.equip(self.entity, self.slot)
 
 
 class StairsAction (Action):
