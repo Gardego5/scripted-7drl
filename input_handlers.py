@@ -246,6 +246,10 @@ class InventoryEventHandler (Menu):
         # Draw Info Screen
         console.draw_frame(64, 27, 14, 21, title="Info")
 
+        # Draw Keybinds Help
+        for i, key_hint in enumerate(["[d] Drop", "[u] Use", "[e] Equip"]):
+            console.print(64, 25 - i, key_hint, fg=color.ui_very_subdued)
+
     def ev_keydown(self, event: tcod.event.KeyDown) -> Optional[ActionOrHandler]:
         action = None
 

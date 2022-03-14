@@ -1,5 +1,6 @@
 from components import consumable
 from components.inventory import Inventory
+from components.equipable import Equipable
 from entity import Item
 import color
 
@@ -30,7 +31,7 @@ bag = Item(
 )
 
 # Composed Item Configuration
-for i in range(3): health_potion.spawn().container = bag.inventory
+for i in range(3): bag.inventory.add(health_potion.spawn())
 
 distribution = {
     0.6: health_potion,

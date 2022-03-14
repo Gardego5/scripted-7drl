@@ -18,6 +18,7 @@ bright_orange               = 0xFF, 0xAC, 0x1C
 #         UI Colors         # ####  ####  ####
 ui_main                     = gray_85
 ui_subdued                  = gray_50
+ui_very_subdued             = gray_25
 ui_bg_highlighted           = gray_15
 ui_bg                       = black
 welcome_text                = 0x20, 0xA0, 0xFF
