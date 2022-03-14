@@ -11,7 +11,8 @@ import tcod
 
 from game_map import GameMap
 import generated_structures
-import factories
+import factories.entity
+import factories.item
 import exceptions
 import calculator
 import tile_types
@@ -63,7 +64,7 @@ def place_entities(
         chosen_monster = random.choices(list(factories.entity.distribution.values()), list(factories.entity.distribution.keys()))[0].spawn()
         place_an_entity_randomly(room, dungeon, chosen_monster)
     for i in range(number_of_items):
-        chosen_item = random.choices(list(factories.item.distribution.values()), list(factories.item.distribution.keys()))[0].spawn()
+        chosen_item = random.choices(list(factories.item.distribution.values()), list(factories.item.distribution.keys()))[0]()
         place_an_entity_randomly(room, dungeon, chosen_item)
 
 def place_stairs(

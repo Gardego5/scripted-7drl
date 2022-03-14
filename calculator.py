@@ -28,3 +28,8 @@ def lucky_chance(chance: int, luck: int, luckability: int = 3):
     # luck can have a beneficial impact, while the less of an impact a small
     # amount of luck has. 
     return chance/luckability*(luckability - 1) + (chance ** (luck/luckability + 1)) / luckability
+
+def clamped_scale(level, s:float = 10, min:float = 0, max:float = 1):
+    # Returns a value between `min` and `max`, based on level. When `s` is 
+    # high, a higher level is required to produce a high result.
+    return level/(s + 1/(max - min)*level) + min

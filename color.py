@@ -48,3 +48,20 @@ health_recovered            = 0x00, 0xFF, 0x00
 needs_target                = 0x3F, 0xFF, 0xFF
 status_effect_applied       = 0x3F, 0xFF, 0x3F
 stairs                      = 0x9F, 0x3F, 0xFF
+
+#       Leveled Colors      # ####  ####  ####
+def leveled(level):
+    if level == 0:
+        return                0x33, 0x3D, 0x7E
+    elif level == 1:
+        return                0x33, 0x3D, 0x7E
+    elif level == 2:
+        return                0x20, 0x60, 0xDC
+    elif level == 3:
+        return                0xFF, 0x47, 0x4A
+    elif level == 4:
+        return                0xDE, 0xDE, 0x21
+    elif level == 5:
+        return                0xAD, 0xFF, 0xA8
+    else:
+        return                0xF4, 0xF7, 0xF9

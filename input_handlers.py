@@ -264,7 +264,7 @@ class InventoryEventHandler (Menu):
         action = None
 
         # Move the cursor in the selected window, but don't make it out of bounds of the window's listings.
-        if event.sym in keybinds.CURSOR_Y_KEYS:
+        if event.sym in keybinds.CURSOR_Y_KEYS and self.window != "No Window":
             adjust = keybinds.CURSOR_Y_KEYS[event.sym]
             if adjust < 0 and self.cursor == 0:
                 self.cursor = len(self.active_window.listings) - 1
