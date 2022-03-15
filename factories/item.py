@@ -47,11 +47,12 @@ def modify(
     valid_modifiers: List[factories.modifiers.Modifier],
     level: int,
 ) -> item:
-    modifiers = random.choices(valid_modifiers, k=random.randint(0, 3))
+    # Picks a weighted random number between 0 and 3 to choose how many modifiers to add.
+    modifiers = random.sample(valid_modifiers, random.sample([0, 1, 2, 3], 1, counts=[11, 6, 2, 1])[0])
 
     for modifier in modifiers:
         modifier = modifier(level)
-        item.name = " ".join([modifier.name, item.name])
+        item.name = "".join([chr(0xAB), item.name, chr(0xBB)])
         item.equipable.max_hp = item.equipable.max_hp + modifier.max_hp
         item.equipable.defence = item.equipable.defence + modifier.defence
         item.equipable.power = item.equipable.power + modifier.power
@@ -82,7 +83,6 @@ def cpu(
 
 def apu(
     level: int = 0,
-    modifier_class: int = 0
 ) -> Item:
     item = Item(
         char=chr(0x2261),
@@ -97,7 +97,7 @@ def apu(
     modify(item, factories.modifiers.base_modifiers, level)
     return item
 
-distribution = {
-    0.5: cpu,
-    0.5: apu,
-}
+distribution = [
+    (cpu, 0.5),
+    (apu, 0.5),
+]

@@ -25,6 +25,9 @@ class InventoryWindow:
         formated_listing = f" {' '*layer}{'>'*bool(layer)}{item.name}"
         formated_listing = formated_listing + " " * (self.width - len(formated_listing))
 
+        if len(formated_listing) > self.width:
+            formated_listing = formated_listing[:self.width//2 - 2] + " ... " + formated_listing[-self.width//2+4:] + " "
+
         formated_listings.append((formated_listing, item))
         if hasattr(item, "inventory"):
             for sub_item in item.inventory.items:

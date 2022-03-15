@@ -8,7 +8,7 @@ import exceptions
 
 if TYPE_CHECKING:
     from engine import Engine
-    from entity import Entity, Actor
+    from entity import Entity, Actor, Item, ItemSlot
 
 
 class Action:
@@ -143,7 +143,7 @@ class DropItem (ItemAction):
 
 
 class EquipItem (ItemAction):
-    def __init__(self, entity, item, slot) -> None:
+    def __init__(self, entity: Actor, item: Item, slot: ItemSlot) -> None:
         super().__init__(entity, item)
         self.slot = slot
 

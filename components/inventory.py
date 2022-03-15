@@ -55,7 +55,7 @@ class TypedInventory (Inventory):
                 super().add(item)
                 return
 
-        raise exceptions.Impossible(f"You cannot put {item.name} in {self.name}.")
+        raise exceptions.Impossible(f"You cannot put {item.name} in {self.entity.name}.")
 
 
 class DynamicInventory (TypedInventory):

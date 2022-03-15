@@ -291,7 +291,9 @@ class InventoryEventHandler (Menu):
                     return  # Cannot use impossible exception because not inside action.
             elif event.sym in keybinds.INV_EQUIP_KEY and self.active_window == self.inventory_window:
                 if hasattr(self.inventory_window.selected_item, "equipable"):
-                    return self.inventory_window.selected_item.equipable.get_action(self.engine.player)
+                    handler = self.inventory_window.selected_item.equipable.get_action(self.engine.player)
+                    handler.previous = self
+                    return handler
                 else:
                     self.engine.message_log.add_message("This item cannot be equiped.", color.impossible)
                     return  # Cannot use impossible exception because not inside action.
@@ -322,16 +324,19 @@ class SelectInventorySlotHandler (InventoryEventHandler):
         super().__init__(engine)
 
         self.callback = callback
-        
+
+    def on_render(self, console: Console) -> None:
+        super().on_render(console)
+        console.print(5, console.height - 2, "[SELECT ITEM/SLOT]", fg=color.ui_subdued)
+
     def ev_keydown(self, event: tcod.event.KeyDown) -> Optional[ActionOrHandler]:
         # Move the cursor in the selected window, but don't make it out of bounds of the window's listings.
         if event.sym in keybinds.WINDOW_TAB_KEY:
             self.change_window()
             return
-        elif self.window == "No Window":
-            if event.sym in keybinds.QUIT_KEYS:
-                return self.on_exit()
-        else:
+        elif event.sym in keybinds.QUIT_KEYS:
+            return self.on_exit()
+        elif self.window != "No Window":
             if event.sym in keybinds.CURSOR_Y_KEYS:
                 adjust = keybinds.CURSOR_Y_KEYS[event.sym]
                 if adjust < 0 and self.cursor == 0:
@@ -340,14 +345,14 @@ class SelectInventorySlotHandler (InventoryEventHandler):
                     self.cursor = 0
                 else:
                     self.cursor = max(0, min(self.cursor + adjust, len(self.active_window.listings) - 1))
-            elif event.sym in keybinds.QUIT_KEYS:
-                self.window = "No Window"
-                return
             elif event.sym in keybinds.CURSOR_SELECT_KEYS:
                 return self.on_item_selected(self.active_window.selected_item)
 
     def on_item_selected(self, item: entity.Item) -> Optional[ActionOrHandler]:
-        return self.callback(item)
+        if isinstance(item, entity.ItemSlot):
+            return self.callback(item)
+        elif isinstance(item, entity.Item):
+            return self.callback(item.container.entity)
 
 
 class SelectHandler (Menu):
