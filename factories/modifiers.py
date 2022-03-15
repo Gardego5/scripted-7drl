@@ -17,6 +17,9 @@ class Modifier:
     max_shield: int = 0
     shield_threshold: float = 0
 
+    whitelist: Set = set({})
+    blacklist: Set = set({})
+
     name: str = "<Unnamed Modifier>"
 
     def __init__(
@@ -26,6 +29,7 @@ class Modifier:
         self.level = level
 
 class Intelligent (Modifier):
+    whitelist = {"cpu"}
     name = "Intelligent"
     @property
     def luck(self) -> int:
@@ -35,9 +39,10 @@ class Intelligent (Modifier):
         return 2 + self.level + (4 if random.random() < calculator.clamped_scale(self.level, min=0, max=0.5) else 0)
     @property
     def data_storage(self) -> int:
-        return 2 * self.level if calculator.clamped_scale(level) else 2
+        return 2 * self.level if calculator.clamped_scale(self.level) else 2
 
 class Planning (Modifier):
+    whitelist = {"apu"}
     name = "Planning"
     @property
     def defence(self) -> int:
@@ -47,7 +52,7 @@ class Planning (Modifier):
         return 2 + self.level + (4 if random.random() < calculator.clamped_scale(self.level, min=0, max=0.5) else 0)
     @property
     def data_storage(self) -> int:
-        return 2 * self.level if calculator.clamped_scale(level) else 2
+        return 2 * self.level if calculator.clamped_scale(self.level) else 2
 
 class Hard (Modifier):
     name = "Hard"
@@ -86,15 +91,36 @@ class Cacheing (Modifier):
     name = "Cacheing"
     @property
     def data_storage(self) -> int:
-        return 5
+        return 2 + self.level // 3
     @property
     def shield_threshold(self) -> float:
         return 0.08 + 0.05 * self.level
 
-base_modifiers = [
-    Hard,
-    Reinforcing,
-    Rash,
-    Lucky,
-    Cacheing,
+class Squinting (Modifier):
+    whitelist = {"gpu"}
+    name = "Squinting"
+    @property
+    def view_distance(self) -> int:
+        return 2 + int(random.random() * calculator.clamped_scale(level, min = 2, max = 10))
+
+class Discerning (Modifier):
+    whitelist = {"d"}
+    name = "Discerning"
+    @property
+    def view_distance(self) -> int:
+        return 1 + self.level // 2 + max(0, self.level - 4)
+    @property
+    def data_storage(self) -> int:
+        return -max(0, self.level - 4)
+
+distribution = [
+    (Intelligent, 10),
+    (Planning, 10),
+    (Hard, 20),
+    (Reinforcing, 10),
+    (Rash, 10),
+    (Lucky, 4),
+    (Cacheing, 20),
+    (Squinting, 10),
+    (Discerning, 1),
 ]

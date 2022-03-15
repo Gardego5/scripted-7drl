@@ -22,6 +22,7 @@ class Equipable (BaseComponent):
         luck: int = 0,
         cpu_threads: int = 0,
         apu_threads: int = 0,
+        view_distance: int = 0,
         data_storage: int = 0,
         max_shield: int = 0,
         shield_threshold: float = 0.0,
@@ -32,6 +33,7 @@ class Equipable (BaseComponent):
         self.luck = luck
         self.cpu_threads = cpu_threads
         self.apu_threads = apu_threads
+        self.view_distance = view_distance
         self.data_storage = data_storage
         self.max_shield = max_shield
         self.shield_threshold = shield_threshold

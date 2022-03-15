@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List
+from typing import List, Tuple
 
 import random
 
@@ -44,11 +44,22 @@ for i in range(3): bag.inventory.add(health_potion.spawn())
 # Dynamically Genertated Items
 def modify(
     item: Item,
-    valid_modifiers: List[factories.modifiers.Modifier],
+    modifier_distribution: List[Tuple[factories.modifiers.Modifier, float]],
     level: int,
 ) -> item:
+    modifiers, weights = [], []
+    for modifier, weight in modifier_distribution:
+        if not bool(modifier.blacklist.intersection(item.flags)):  # Make sure that the item is not in the blacklist.
+            if modifier.whitelist:  # If there is a whitelist for the modifier, make sure that the item is in the whitelist.
+                if bool(modifier.whitelist.intersection(item.flags)):
+                    modifiers.append(modifier)
+                    weights.append(weight)
+            else:  # If there is no whitelist, add it.
+                modifiers.append(modifier)
+                weights.append(weight)
+
     # Picks a weighted random number between 0 and 3 to choose how many modifiers to add.
-    modifiers = random.sample(valid_modifiers, random.sample([0, 1, 2, 3], 1, counts=[11, 6, 2, 1])[0])
+    modifiers = random.sample(modifiers, random.sample([0, 1, 2, 3], 1, counts=[11, 6, 2, 1])[0], counts = weights)
 
     for modifier in modifiers:
         modifier = modifier(level)
@@ -78,7 +89,7 @@ def cpu(
         ),
     )
 
-    modify(item, factories.modifiers.base_modifiers, level)
+    modify(item, factories.modifiers.distribution, level)
     return item
 
 def apu(
@@ -94,10 +105,27 @@ def apu(
         ),
     )
 
-    modify(item, factories.modifiers.base_modifiers, level)
+    modify(item, factories.modifiers.distribution, level)
+    return item
+
+def gpu(
+    level: int = 0,
+) -> Item:
+    item = Item(
+        char=chr(0x2261),
+        name="GPU",
+        flags={"gpu"},
+        color=color.leveled(level),
+        equipable=Equipable(
+            view_distance=2 + level,
+        ),
+    )
+
+    modify(item, factories.modifiers.distribution, level)
     return item
 
 distribution = [
     (cpu, 0.5),
     (apu, 0.5),
+    (gpu, 0.5),
 ]
