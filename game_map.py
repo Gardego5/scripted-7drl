@@ -68,15 +68,25 @@ class GameMap:
         xc_2, yc_2 = xc_1 + xm_2 - xm_1, yc_1 + ym_2 - ym_1
         if self.fog:
             console.rgb[xc_1:xc_2, yc_1:yc_2] = np.select(
-                condlist=[self.visible[xm_1:xm_2, ym_1:ym_2], self.explored[xm_1:xm_2, ym_1:ym_2]],
-                choicelist=[self.tiles["light"][xm_1:xm_2, ym_1:ym_2], self.tiles["dark"][xm_1:xm_2, ym_1:ym_2]],
+                condlist=[self.explored[xm_1:xm_2, ym_1:ym_2]],
+                choicelist=[self.tiles["graphic"][xm_1:xm_2, ym_1:ym_2]],
                 default=tile_types.SHROUD
             )
-        else:
+            console.rgb["fg"] = console.rgb["fg"] // 1.4
+            console.rgb["bg"] = console.rgb["bg"] // 1.4
             console.rgb[xc_1:xc_2, yc_1:yc_2] = np.select(
-                condlist=[self.visible[xm_1:xm_2, ym_1:ym_2], self.explored[xm_1:xm_2, ym_1:ym_2]],
-                choicelist=[self.tiles["light"][xm_1:xm_2, ym_1:ym_2], self.tiles["dark"][xm_1:xm_2, ym_1:ym_2]],
-                default=self.tiles["dark"][xm_1:xm_2, ym_1:ym_2]
+                condlist=[self.visible[xm_1:xm_2, ym_1:ym_2]],
+                choicelist=[self.tiles["graphic"][xm_1:xm_2, ym_1:ym_2]],
+                default=console.rgb[xc_1:xc_2, yc_1:yc_2]
+            )
+        else:
+            console.rgb[xc_1:xc_2, yc_1:yc_2] = self.tiles["graphic"][xm_1:xm_2, ym_1:ym_2]
+            console.rgb["fg"] = console.rgb["fg"] // 1.4
+            console.rgb["bg"] = console.rgb["bg"] // 1.4
+            console.rgb[xc_1:xc_2, yc_1:yc_2] = np.select(
+                condlist=[self.visible[xm_1:xm_2, ym_1:ym_2]],
+                choicelist=[self.tiles["graphic"][xm_1:xm_2, ym_1:ym_2]],
+                default=console.rgb[xc_1:xc_2, yc_1:yc_2]
             )
 
         entities_sorted_for_rendering = sorted(self.entities, key = lambda x: x.render_order.value)
