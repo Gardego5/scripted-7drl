@@ -12,6 +12,8 @@ if TYPE_CHECKING:
 
 
 class Action:
+    acting_time: float = 1.0
+
     def __init__(self, entity: Actor) -> None:
         self.entity = entity
     

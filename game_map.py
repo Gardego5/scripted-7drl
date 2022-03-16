@@ -30,6 +30,8 @@ class GameMap:
 
         self.tiles = np.full((width, height), fill_value=tile_types.wall, order="F")
 
+        self.clock = {}
+
         # To keep track of what the player should see.
         self.visible = np.full((width, height), fill_value=False, order="F")
         self.explored = np.full((width, height), fill_value=False, order="F")
@@ -42,6 +44,17 @@ class GameMap:
     @property
     def items(self) -> Iterator[Item]:
         yield from (entity for entity in self.entities if isinstance(entity, Item))
+
+    def add_to_clock(self, actor: Actor, time: Optional[float] = None) -> None:
+        try:
+            t = min(self.clock) + time if time is not None else actor.fighter.acting_time
+        except ValueError:
+            t = time if time is not None else actor.fighter.acting_time
+
+        try:
+            self.clock[t].append(actor)
+        except KeyError:
+            self.clock[t] = [actor]
 
     def get_blocking_entity_at_location(self, pos: Tuple[int, int]) -> Optional[Entity]:
         for entity in self.entities:

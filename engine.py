@@ -37,12 +37,35 @@ class Engine:
         self.camera = Camera.from_entity(player)
 
     def handle_enemy_turns(self) -> None:
-        for entity in set(self.game_map.actors) - {self.player}:
-            if entity.ai:
-                try:
-                    entity.ai.perform()
-                except exceptions.Impossible:
-                    pass # Ignore impossible actions from AI.
+        current_actor = None
+
+        while True:
+            # Attempt to make the 0 position actor at the next timepoint
+            # array the "current_actor" and give it a turn.
+            try:
+                current_time = min(self.game_map.clock)
+                current_actor = self.game_map.clock[current_time].pop(0)
+
+                # Let "current_actor" have a turn and add it back into the
+                # "time_table".
+                if current_actor.ai:
+                    acting_time = current_actor.ai.acting_time
+                    self.game_map.add_to_clock(current_actor, acting_time)
+                    if current_actor is not self.player:
+                        try:
+                            current_actor.ai.perform()
+                        except exceptions.Impossible:
+                            pass
+
+                # As long as the last actor was not the player,
+                # keep running through turns.
+                if current_actor is self.player:
+                    break
+
+            # If the next timepoint is an empty array, remove it from the
+            # "time_table".
+            except IndexError:
+                self.game_map.clock.pop(min(self.game_map.clock))
     
     def update_fov(self) -> None:
         self.game_map.visible[:] = compute_fov(

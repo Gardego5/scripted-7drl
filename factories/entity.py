@@ -1,4 +1,4 @@
-from components.ai import HostileEnemy
+from components.ai import DocileEnemy
 from components.fighter import Fighter
 from components.inventory import Inventory
 from entity import Actor, Player
@@ -16,14 +16,14 @@ player = Player(
 # Enemies
 scientist = Actor(
     char="S", color=(200, 255, 200), name="Scientist", 
-    blocks_movement=True, ai_cls=HostileEnemy, 
-    fighter=Fighter(hp=8, defence=1, power=2),
+    blocks_movement=True, ai_cls=DocileEnemy, 
+    fighter=Fighter(hp=8, defence=1, power=2, view_distance=8),
     inventory=Inventory(3),
 )
 janitor = Actor(
     char="J", color=(179, 113, 55), name="Janitor", 
-    blocks_movement=True, ai_cls=HostileEnemy, 
-    fighter=Fighter(hp=13, defence=1, power=4),
+    blocks_movement=True, ai_cls=DocileEnemy, 
+    fighter=Fighter(hp=13, defence=1, power=4, view_distance=6.5),
     inventory=Inventory(3)
 )
 

@@ -143,4 +143,7 @@ def generate_dungeon(
     else:  # If this is not the first floor, add an up stairs.
         place_stairs(simple_structures, dungeon, True)
 
+    for actor in dungeon.actors:
+        dungeon.add_to_clock(actor)
+
     return dungeon

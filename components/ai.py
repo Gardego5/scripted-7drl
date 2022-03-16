@@ -52,6 +52,13 @@ class BaseAI(Action):
         # Convert from List[List[int]] to List[Tuple[int, int]].
         return [(index[0], index[1]) for index in path]
 
+class DocileEnemy (BaseAI):
+    def perform(self) -> None:
+        if self.entity.distance(self.engine.player.pos) < self.entity.fighter.view_distance:
+            self.entity.ai = HostileEnemy(self.entity)
+        else:
+            return WaitAction(self.entity).perform()
+
 class HostileEnemy (BaseAI):
     def __init__(self, entity: Actor, tenacity: int = 10):
         super().__init__(entity, tenacity=tenacity)
@@ -63,11 +70,10 @@ class HostileEnemy (BaseAI):
         delta = calculator.tuple_subtract(target.pos, self.entity.pos)
         distance = max(abs(delta[0]), abs(delta[1]))
 
-        if self.engine.game_map.visible[self.entity.pos]:
-            if distance <= 1:
-                return MeleeAction(self.entity, delta).perform()
+        if distance <= 1:
+            return MeleeAction(self.entity, delta).perform()
             
-            self.path = self.get_path_to(target.pos)
+        self.path = self.get_path_to(target.pos)
         
         if self.path:
             dest = self.path.pop(0)

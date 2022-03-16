@@ -203,6 +203,17 @@ class Actor (Entity):
         self._fighter.entity = self
 
     @property
+    def ai(self) -> BaseAI:
+        return self._ai
+    @ai.setter
+    def ai(self, ai: BaseAI) -> None:
+        if hasattr(self, "_ai"):
+            del self._ai.entity
+        self._ai = ai
+        if self._ai is not None:
+            self._ai.entity = self
+
+    @property
     def is_alive(self) -> bool:
         return bool(self.ai)
 

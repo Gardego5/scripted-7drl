@@ -19,13 +19,15 @@ class Fighter (BaseComponent):
         defence: int,
         power: int,
         luck: int = 0,
-        view_distance: int = 2,
+        acting_time: float = 1.0,
+        view_distance: float = 2,
         equipment: Inventory = None,
     ) -> None:
         self.max_hp = hp
         self.defence = defence
         self.power = power
         self.luck = luck
+        self.acting_time = acting_time
         self.view_distance = view_distance
         if equipment:
             self.equipment = equipment
@@ -88,20 +90,31 @@ class Fighter (BaseComponent):
         for eq in self.equipment:
             eq_luck += eq.equipable.luck
 
-        return self._luck + eq_power
+        return self._luck + eq_luck
     @luck.setter
     def luck(self, luck: int) -> None:
         self._luck = luck
 
     @property
-    def view_distance(self) -> int:
+    def acting_time(self) -> float:
+        eq_acting_time = 0
+        for eq in self.equipment:
+            eq_acting_time += eq.equipable.acting_time
+
+        return self._acting_time + eq_acting_time
+    @acting_time.setter
+    def acting_time(self, acting_time: float) -> None:
+        self._acting_time = acting_time
+
+    @property
+    def view_distance(self) -> float:
         eq_view_distance = 0
         for eq in self.equipment:
             eq_view_distance += eq.equipable.view_distance
         
         return self._view_distance + eq_view_distance
     @view_distance.setter
-    def view_distance(self, view_distance: int) -> None:
+    def view_distance(self, view_distance: float) -> None:
         self._view_distance = view_distance
 
     def heal(self, amount: int) -> int:
