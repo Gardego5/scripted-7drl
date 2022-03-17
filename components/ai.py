@@ -4,6 +4,7 @@ from typing import Union, Optional, List, Tuple, TYPE_CHECKING
 
 import numpy as np  # type: ignore
 import tcod
+from tcod.map import compute_fov
 import random
 
 from actions import Action, MeleeAction, MovementAction, WaitAction, BumpAction
@@ -73,8 +74,13 @@ class BaseAI(Action):
         # Convert from List[List[int]] to List[Tuple[int, int]].
         return [(index[0], index[1]) for index in path]
     
-    def can_see(self, target: Union[Actor, Tuple[int, int]]) -> bool:
-        raise NotImplementedError()
+    def can_see(self, target: Tuple[int, int]) -> bool:
+        return compute_fov(
+            self.engine.game_map.tiles["transparent"],
+            (self.entity.x, self.entity.y),
+            radius=int(self.entity.fighter.view_distance),
+            algorithm=tcod.FOV_SHADOW,
+        )[target]
 
     def get_random_target(self) -> Tuple[int, int]:
         x, y = self.entity.pos
@@ -96,8 +102,10 @@ class BaseAI(Action):
 
 class IdleEnemy (BaseAI):
     def perform(self) -> None:
-        if self.entity.distance(self.engine.player.pos) < self.entity.fighter.earshot:
-            return self.give_control(HostileEnemy())
+        if self.can_see(self.engine.player.pos):
+            return self.give_control(HostileEnemy(self.engine.player.pos))
+        elif self.entity.distance(self.engine.player.pos) < self.entity.fighter.earshot:
+            return self.give_control(HostileEnemy(target=calculator.tuple_add(self.engine.player.pos, (random.randint(-5, 5), random.randint(-5, 5)))))
         elif random.random() > calculator.lucky_chance(0.8, self.tenacity):
             return self.give_control(MeanderingEnemy())
         else:
@@ -106,10 +114,11 @@ class IdleEnemy (BaseAI):
 
 class MeanderingEnemy (BaseAI):
     def perform(self) -> None:
-        if self.entity.distance(self.engine.player.pos) < self.entity.fighter.earshot:
+        if self.can_see(self.engine.player.pos):
+            return self.give_control(HostileEnemy(self.engine.player))
+        elif self.entity.distance(self.engine.player.pos) < self.entity.fighter.earshot:
             return self.give_control(HostileEnemy(target=calculator.tuple_add(self.engine.player.pos, (random.randint(-5, 5), random.randint(-5, 5)))))
-
-        if self.target_pos:
+        elif self.target_pos:
             self.path = self.get_path_to(self.target_pos)
 
             if self.path:
@@ -121,21 +130,23 @@ class MeanderingEnemy (BaseAI):
 
 class HostileEnemy (BaseAI):
     def perform(self) -> None:
-        target = self.engine.player
+        if self.can_see(self.engine.player.pos):
+            self.target = self.engine.player
 
-        delta = calculator.tuple_subtract(target.pos, self.entity.pos)
-        distance = max(abs(delta[0]), abs(delta[1]))
+        if self.target:
+            delta = calculator.tuple_subtract(self.target_pos, self.entity.pos)
+            distance = max(abs(delta[0]), abs(delta[1]))
 
-        if distance <= 1:
-            return MeleeAction(self.entity, delta).perform()
+            if distance <= 1:
+                return MeleeAction(self.entity, delta).perform()
+                
+            self.path = self.get_path_to(self.target_pos)
             
-        self.path = self.get_path_to(target.pos)
-        
-        if self.path:
-            dest = self.path.pop(0)
-            return MovementAction(self.entity, calculator.tuple_subtract(dest, self.entity.pos)).perform()
-        
-        return WaitAction(self.entity).perform()
+            if self.path:
+                dest = self.path.pop(0)
+                return MovementAction(self.entity, calculator.tuple_subtract(dest, self.entity.pos)).perform()
+        else:
+            self.give_control(IdleEnemy())
 
 
 class ConfusedEnemy (BaseAI):
