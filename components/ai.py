@@ -95,9 +95,17 @@ class BaseAI(Action):
 
         return None
     
-    def give_control(self, new_ai: BaseAI) -> Optional[Action]:
-        self.entity.ai = new_ai
-        new_ai.perform()
+    def should_move_away_from_walls(self) -> Optional[Action]:
+        x, y = self.entity.pos
+        if not self.engine.game_map.tiles[x, y + 1]["walkable"] and not self.engine.game_map.tiles[x, y - 1]["walkable"] and self.engine.game_map.tiles[x - 1, y]["walkable"]:
+            return MovementAction(self.entity, (-1, 0))
+        if not self.engine.game_map.tiles[x, y + 1]["walkable"] and not self.engine.game_map.tiles[x, y - 1]["walkable"] and self.engine.game_map.tiles[x + 1, y]["walkable"]:
+            return MovementAction(self.entity, (1, 0))
+        if not self.engine.game_map.tiles[x + 1, y]["walkable"] and not self.engine.game_map.tiles[x - 1, y]["walkable"] and self.engine.game_map.tiles[x, y - 1]["walkable"]:
+            return MovementAction(self.entity, (0, -1))
+        if not self.engine.game_map.tiles[x + 1, y]["walkable"] and not self.engine.game_map.tiles[x - 1, y]["walkable"] and self.engine.game_map.tiles[x, y + 1]["walkable"]:
+            return MovementAction(self.entity, (0, 1))
+        return None
 
 
 class IdleEnemy (BaseAI):
