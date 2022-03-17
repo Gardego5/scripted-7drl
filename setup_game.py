@@ -37,6 +37,7 @@ def load_game() -> Engine:
         engine = pickle.loads(lzma.decompress(file.read()))
     assert isinstance(engine, Engine)
     remove("save")
+    print("Game Loaded.")
     return engine
 
 
