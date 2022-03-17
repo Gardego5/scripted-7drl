@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import traceback
 
 import tcod
@@ -46,11 +47,8 @@ def main() -> None:
                     traceback.print_exc()  # Print to stderr.
                     handler.engine.message_log.add_message(traceback.format_exc(), color.error)  # Print to message log.
         except SystemExit or BaseException:
-            try:
-                if handler.engine.player.is_alive:
-                    save_game(handler)
-            except AttributeError: pass
-            raise
+            if handler.engine.player.is_alive:
+                save_game(handler)
 
 
 if __name__ == "__main__":
