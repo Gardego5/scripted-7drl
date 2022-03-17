@@ -15,14 +15,38 @@ if TYPE_CHECKING:
 
 
 class BaseAI(Action):
-    def __init__(self, target: Optional[Union[Actor, Tuple[int, int]]] = None, tenacity: int = 10):
+    def __init__(
+        self,
+        target: Optional[Union[Actor, Tuple[int, int]]] = None,
+        tenacity: int = 10
+    ) -> None:
+        if target is not None: self.target = target
         self.tenacity = tenacity
 
         self.path: List[Tuple[int, int]] = []
-        if target:
-            self.target = target
+
+    @classmethod
+    def from_AI(
+        cls, old_ai: BaseAI,
+        target: Optional[Union[Actor, Tuple[int, int]]] = None,
+        tenacity: Optional[int] = None
+    ) -> Optional[Action]:
+        '''Create replace old_ai with a new ai of type cls. 
+        By default will reuse the properties of old_ai, but can be overridden.
+        '''
+        new_ai = cls(
+            target = target if target is not None else old_ai.target,
+            tenacity = tenacity if tenacity is not None else old_ai.tenacity,
+        )
+        old_ai.entity.ai = new_ai
+
+        return new_ai.perform()
     
-    entity: Actor
+    def give_control(self, new_ai: BaseAI) -> Optional[Action]:
+        '''Relinquish control of self.entity to new_ai.
+        '''
+        self.entity.ai = new_ai
+        new_ai.perform()
 
     @property
     def target(self) -> Optional[Union[Actor, Tuple[int, int]]]:
@@ -111,23 +135,35 @@ class BaseAI(Action):
 class IdleEnemy (BaseAI):
     def perform(self) -> None:
         if self.can_see(self.engine.player.pos):
-            return self.give_control(HostileEnemy(self.engine.player.pos))
+            return HostileEnemy.from_AI(self, target=self.engine.player.pos)
         elif self.entity.distance(self.engine.player.pos) < self.entity.fighter.earshot:
-            return self.give_control(HostileEnemy(target=calculator.tuple_add(self.engine.player.pos, (random.randint(-5, 5), random.randint(-5, 5)))))
-        elif random.random() > calculator.lucky_chance(0.8, self.tenacity):
-            return self.give_control(MeanderingEnemy())
+            return HostileEnemy.from_AI(self, target=calculator.tuple_add(self.engine.player.pos, (random.randint(-5, 5), random.randint(-5, 5))))
+        elif random.random() > calculator.lucky_chance(0.98, self.tenacity):
+            return MeanderingEnemy.from_AI(self)
         else:
-            return WaitAction(self.entity).perform()
+            evade = self.should_move_away_from_walls()
+            if evade:
+                return evade.perform()
+
+            sleep = WaitAction(self.entity)
+            sleep.acting_time = 4
+            return sleep.perform()
 
 
 class MeanderingEnemy (BaseAI):
     def perform(self) -> None:
         if self.can_see(self.engine.player.pos):
-            return self.give_control(HostileEnemy(self.engine.player))
+            return HostileEnemy.from_AI(target=self.engine.player)
         elif self.entity.distance(self.engine.player.pos) < self.entity.fighter.earshot:
-            return self.give_control(HostileEnemy(target=calculator.tuple_add(self.engine.player.pos, (random.randint(-5, 5), random.randint(-5, 5)))))
+            return HostileEnemy.from_AI(self, target=calculator.tuple_add(self.engine.player.pos, (random.randint(-5, 5), random.randint(-5, 5))))
         elif self.target_pos:
             self.path = self.get_path_to(self.target_pos)
+
+            delta = calculator.tuple_subtract(self.target_pos, self.entity.pos)
+            distance = max(abs(delta[0]), abs(delta[1]))
+
+            if distance == 0:
+                return IdleEnemy.from_AI(self)
 
             if self.path:
                 dest = self.path.pop(0)
@@ -154,7 +190,7 @@ class HostileEnemy (BaseAI):
                 dest = self.path.pop(0)
                 return MovementAction(self.entity, calculator.tuple_subtract(dest, self.entity.pos)).perform()
         else:
-            self.give_control(IdleEnemy())
+            IdleEnemy.from_AI(self)
 
 
 class ConfusedEnemy (BaseAI):
