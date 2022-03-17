@@ -21,6 +21,7 @@ class Fighter (BaseComponent):
         luck: int = 0,
         acting_time: float = 1.0,
         view_distance: float = 2,
+        earshot: float = 11,
         equipment: Inventory = None,
     ) -> None:
         self.max_hp = hp
@@ -29,6 +30,7 @@ class Fighter (BaseComponent):
         self.luck = luck
         self.acting_time = acting_time
         self.view_distance = view_distance
+        self.earshot = earshot
         if equipment:
             self.equipment = equipment
         else:

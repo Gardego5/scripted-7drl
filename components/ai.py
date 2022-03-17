@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, Tuple, TYPE_CHECKING
+from typing import Union, Optional, List, Tuple, TYPE_CHECKING
 
 import numpy as np  # type: ignore
 import tcod
@@ -14,11 +14,32 @@ if TYPE_CHECKING:
 
 
 class BaseAI(Action):
-    def __init__(self, entity: Actor, tenacity: int = 10):
-        self.entity = entity
+    def __init__(self, target: Optional[Union[Actor, Tuple[int, int]]] = None, tenacity: int = 10):
         self.tenacity = tenacity
+
+        self.path: List[Tuple[int, int]] = []
+        if target:
+            self.target = target
     
     entity: Actor
+
+    @property
+    def target(self) -> Optional[Union[Actor, Tuple[int, int]]]:
+        if hasattr(self, "_target"):
+            return self._target
+        else:
+            return None
+    @target.setter
+    def target(self, target: Optional[Union[Actor, Tuple[int, int]]]) -> None:
+        self._target = target
+    @property
+    def target_pos(self) -> Optional[Tuple[int, int]]:
+        if self.target is None:
+            return None
+        elif isinstance(self.target, tuple):
+            return self.target
+        else:
+            return self.target.pos
 
     def perform(self) -> None:
         raise NotImplementedError()
@@ -51,19 +72,54 @@ class BaseAI(Action):
 
         # Convert from List[List[int]] to List[Tuple[int, int]].
         return [(index[0], index[1]) for index in path]
+    
+    def can_see(self, target: Union[Actor, Tuple[int, int]]) -> bool:
+        raise NotImplementedError()
 
-class DocileEnemy (BaseAI):
+    def get_random_target(self) -> Tuple[int, int]:
+        x, y = self.entity.pos
+
+        for i in range(8):
+            target_pos = random.randint(x - 5, x + 5), random.randint(y - 5, y + 5)
+            try:
+                if self.entity.distance(target_pos) > 4 and self.entity.game_map.tiles[target_pos]["walkable"]:
+                    return target_pos
+            except IndexError:
+                pass
+
+        return None
+    
+    def give_control(self, new_ai: BaseAI) -> Optional[Action]:
+        self.entity.ai = new_ai
+        new_ai.perform()
+
+
+class IdleEnemy (BaseAI):
     def perform(self) -> None:
-        if self.entity.distance(self.engine.player.pos) < self.entity.fighter.view_distance:
-            self.entity.ai = HostileEnemy(self.entity)
+        if self.entity.distance(self.engine.player.pos) < self.entity.fighter.earshot:
+            return self.give_control(HostileEnemy())
+        elif random.random() > calculator.lucky_chance(0.8, self.tenacity):
+            return self.give_control(MeanderingEnemy())
         else:
             return WaitAction(self.entity).perform()
 
+
+class MeanderingEnemy (BaseAI):
+    def perform(self) -> None:
+        if self.entity.distance(self.engine.player.pos) < self.entity.fighter.earshot:
+            return self.give_control(HostileEnemy(target=calculator.tuple_add(self.engine.player.pos, (random.randint(-5, 5), random.randint(-5, 5)))))
+
+        if self.target_pos:
+            self.path = self.get_path_to(self.target_pos)
+
+            if self.path:
+                dest = self.path.pop(0)
+                return MovementAction(self.entity, calculator.tuple_subtract(dest, self.entity.pos)).perform()
+        else:
+            self.target = self.get_random_target()
+
+
 class HostileEnemy (BaseAI):
-    def __init__(self, entity: Actor, tenacity: int = 10):
-        super().__init__(entity, tenacity=tenacity)
-        self.path: List[Tuple[int, int]] = []
-    
     def perform(self) -> None:
         target = self.engine.player
 
@@ -83,8 +139,8 @@ class HostileEnemy (BaseAI):
 
 
 class ConfusedEnemy (BaseAI):
-    def __init__(self, entity: Actor, previous_ai: Optional[BaseAI], turns: int, chance: float = 0.90) -> None:
-        super().__init__(entity)
+    def __init__(self, previous_ai: Optional[BaseAI], turns: int, chance: float = 0.90) -> None:
+        super().__init__()
 
         self.previous_ai = previous_ai
         self.turns_remaining = turns
@@ -93,7 +149,7 @@ class ConfusedEnemy (BaseAI):
     def perform(self) -> None:
         if self.turns_remaining <= 0:  # If the entity has been confused for long enough, stop it's confusion.
             self.engine.message_log.add_message(f"The {self.entity.name} is no longer confused.")
-            self.entity.ai = self.previous_ai
+            self.give_control(self.previous_ai)
         elif random.random() > self.chance:  # The entity lucked out, and had a coherent thought for a moment.
             return self.previous_ai.perform()
         else:  # The entity stumbles about.
