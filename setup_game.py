@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import lzma
-import pickle
+import dill as pickle
 from os import remove
 from typing import Optional
 
